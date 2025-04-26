@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+sqlalchemy
+python-dotenv
+pydantic[email]
+pytest
+pytest-mock
+httpx
+openai>=1.61.1
+pyttsx3
+typing
+pymongo
+mongomock
+dotenv
+debugpy
+pytest

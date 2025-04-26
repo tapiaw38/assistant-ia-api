@@ -1,0 +1,42 @@
+services:
+  assistant-ia-db:
+    container_name: "assistant-ia-db"
+    image: mongo:6.0
+    restart: on-failure
+    ports:
+      - ${DB_PORT}:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
+    volumes:
+      - db_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    networks:
+      - assistant-ia-network
+  assistant-ia-api:
+    container_name: assistant-ia-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    restart: unless-stopped
+    depends_on:
+      - assistant-ia-db
+    networks:
+      - assistant-ia-network
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+
+networks:
+  assistant-ia-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
