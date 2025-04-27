@@ -1,15 +1,8 @@
 from src.core.platform.config.service import ConfigurationService
 from openai import AsyncOpenAI
 from typing import Optional
+from src.adapters.integrations.openapi.context import CONTEXT_INFORMATION
 
-CONTEXT_INFORMATION = "" \
-"You are a helpful assistant. \
-You are given the following context: \
-{context} \
-You are given the following question: \
-{question} \
-Answer the question as concisely as possible, using the context provided. " \
-"return the answer as a string without any additional text and respond in spanish"
 
 class OpenAIIntegration:
     def __init__(self, config_service: ConfigurationService):
@@ -25,8 +18,8 @@ class OpenAIIntegration:
             base_url=self.base_url
         )
 
-    async def ask(self, question: str, context: Optional[str]) -> str:
-        question_message = CONTEXT_INFORMATION.format(question=question, context=context)
+    async def ask(self, question: str, context: Optional[str], previous_messages: str) -> str:
+        question_message = CONTEXT_INFORMATION.format(question=question, context=context, previous_messages=previous_messages)
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[

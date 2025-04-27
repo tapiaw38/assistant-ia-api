@@ -1,5 +1,8 @@
 from src.adapters.repositories.repositories import RepositoryInterface
-from src.schemas.schemas import ConversationInput
+from src.schemas.schemas import (
+    ConversationInput,
+    MessageInput,
+)
 from src.core.domain.model import (
     Conversation,
     Message,
@@ -14,7 +17,6 @@ from src.core.platform.config.service import (
 from src.adapters.integrations.integrations import (
     create_integrations,
 )
-from typing import Optional
 
 
 init_config()
@@ -68,7 +70,15 @@ class AddMessageUseCase:
     def __init__(self, conversation_repository: RepositoryInterface):
         self.conversation_repository = conversation_repository
 
-    async def execute(self, conversation_id: str, message: Message, sender: SenderEnum):
+    def convert_messages_to_string(self, messages: list[Message]) -> str:
+        message_objects = [
+            f"{message.sender}: {message.content}"
+            for message in messages
+        ]
+
+        return " - ".join(message_objects)
+
+    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum) -> list[Message]:
         new_message = Message(
             content=message.content,
             sender=sender,
@@ -88,7 +98,11 @@ class AddMessageUseCase:
 
             search_conversation.messages.append(new_message)
 
-            response = await integration.openai.ask(new_message.content, message.context)
+            response = await integration.openai.ask(
+                new_message.content,
+                message.context,
+                self.convert_messages_to_string(search_conversation.messages)
+            )
 
             response_message = Message(
                 content=response,
@@ -98,7 +112,12 @@ class AddMessageUseCase:
 
             search_conversation.messages.append(response_message)
 
-            self.conversation_repository.update_messages_by_id(conversation_id, search_conversation.messages)
+            self.conversation_repository.update_messages_by_id(
+                conversation_id, 
+                search_conversation.messages,
+            )
+
+            return search_conversation.messages
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with the database: {e}")

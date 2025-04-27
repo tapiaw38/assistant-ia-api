@@ -44,7 +44,7 @@ class Service:
     async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum):
         try:
             usecase = AddMessageUseCase(self.conversation_repository)
-            await usecase.execute(conversation_id, message, sender)
-            return {"message": "Message added successfully"}
+            messages = await usecase.execute(conversation_id, message, sender)
+            return messages
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

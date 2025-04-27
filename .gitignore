@@ -17,10 +17,10 @@ instance/
 *.sqlite3
 
 # IDEs and editors
-.vscode/
 .idea/
 *.swp
 *.swo
+!.vscode/launch.json
 
 # OS generated files
 .DS_Store

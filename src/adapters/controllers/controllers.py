@@ -30,5 +30,5 @@ async def find_conversations_by_user_id(user_id: str):
 @router.post("/{conversation_id}/message", status_code=status.HTTP_200_OK)
 async def add_message(conversation_id: str, message: MessageInput):
     sender = SenderEnum.user
-    message = await service.add_message(conversation_id, message, sender)
-    return message
+    messages = await service.add_message(conversation_id, message, sender)
+    return messages

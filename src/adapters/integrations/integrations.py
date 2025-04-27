@@ -1,4 +1,4 @@
-from src.adapters.integrations.openapi import OpenAIIntegration
+from src.adapters.integrations.openapi.openapi import OpenAIIntegration
 from src.core.platform.config.service import ConfigurationService
 
 

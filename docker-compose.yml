@@ -21,6 +21,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "5678:5678"
     volumes:
       - ./:/app
     restart: unless-stopped
@@ -32,6 +33,12 @@ services:
       - .env
     environment:
       - PYTHONPATH=/app
+    command:
+      [
+        "sh",
+        "-c",
+        "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+      ]
 
 networks:
   assistant-ia-network:
