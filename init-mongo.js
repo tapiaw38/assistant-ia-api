@@ -19,8 +19,8 @@ const newDB = db.getSiblingDB(dbName);
 
 // Create a collection or perform other operations if needed
 newDB.createCollection("migrations");
-newDB.createCollection("conversation");
-newDB.createCollection("configuration");
+newDB.createCollection("conversations");
+newDB.createCollection("profiles");
 
 // Create a user for the new database using root user and password
 newDB.createUser({

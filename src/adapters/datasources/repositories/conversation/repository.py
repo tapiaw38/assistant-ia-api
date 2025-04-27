@@ -4,7 +4,7 @@ from src.core.domain.model import (
     Conversation,
     Message,
 )
-from src.core.platform.nosql.client import Client
+from src.adapters.datasources.datasources import Datasources
 from pymongo.errors import PyMongoError
 
 
@@ -26,8 +26,8 @@ class RepositoryInterface(ABC):
         pass
 
 class Repository(RepositoryInterface):
-    def __init__(self, client: Client):
-        self.client = client
+    def __init__(self, datasources: Datasources):
+        self.client = datasources.no_sql_conversations_client
 
     def create(self, conversation: Conversation) -> str:
         try:

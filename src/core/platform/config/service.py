@@ -20,6 +20,7 @@ class NoSQLCollectionConfig:
 class NoSQLConfig:
     migrations: Optional[NoSQLCollectionConfig] = None
     conversations: Optional[NoSQLCollectionConfig] = None
+    profiles: Optional[NoSQLCollectionConfig] = None
 
 @dataclass
 class ServerConfig:
@@ -54,7 +55,6 @@ def get_config_service() -> ConfigurationService:
     return _config_service
 
 def get_env(key: str, fallback: str) -> str:
-    """Retrieve an environment variable or return a fallback value."""
     return os.getenv(key, fallback)
 
 
@@ -71,13 +71,18 @@ def read_config() -> ConfigurationService:
     nosql_config = NoSQLConfig(
         migrations=NoSQLCollectionConfig(
             database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
-            database=get_env("DB_NAME", "hotel-reservation-db"),
+            database=get_env("DB_NAME", "assistant-ia-db"),
             collection=get_env("DB_COLLECTION_MIGRATIONS", "migrations"),
         ),
         conversations=NoSQLCollectionConfig(
             database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
-            database=get_env("DB_NAME", "hotel-reservation-db"),
-            collection=get_env("DB_COLLECTION_HOTELS", "hotels"),
+            database=get_env("DB_NAME", "assistant-ia-db"),
+            collection=get_env("DB_COLLECTION_CONVERSATIONS", "conversations"),
+        ),
+        profiles=NoSQLCollectionConfig(
+            database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
+            database=get_env("DB_NAME", "assistant-ia-db"),
+            collection=get_env("DB_COLLECTION_PROFILES", "profiles"),
         ),
     )
 

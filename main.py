@@ -3,6 +3,14 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes.routes_manager import RoutesManager
 from src.adapters.integrations.integrations import create_integrations
+from src.core.platform.config.service import (
+    init_config,
+    get_config_service
+)
+from src.core.platform.nosql.client import MongoDBClient
+from src.adapters.datasources.datasources import Datasources
+from src.core.platform.appcontext.appcontext import new_factory
+from src.core.use_cases.use_cases import create_usecases
 
 app = FastAPI(
     title="Assistant IA API",
@@ -22,5 +30,33 @@ app.add_middleware(
 async def redirect_to_docs():
     return RedirectResponse(url="/docs")
 
-routes_manager = RoutesManager(app)
+
+init_config()
+config_service = get_config_service()
+
+migrations_client = MongoDBClient(
+    config_service.nosql_config.migrations.database_uri,
+    config_service.nosql_config.migrations.database,
+    config_service.nosql_config.migrations.collection,
+)
+conversations_client = MongoDBClient(
+    config_service.nosql_config.conversations.database_uri,
+    config_service.nosql_config.conversations.database,
+    config_service.nosql_config.conversations.collection,
+)
+profiles_client = MongoDBClient(
+    config_service.nosql_config.profiles.database_uri,
+    config_service.nosql_config.profiles.database,
+    config_service.nosql_config.profiles.collection,
+)
+
+datasources = Datasources.create_datasources(
+    no_sql_hotel_client=conversations_client,
+    no_sql_locations_client=profiles_client,
+)
+integrations = create_integrations(config_service)
+context_factory = new_factory(datasources, integrations, config_service)
+usecases = create_usecases(context_factory)
+
+routes_manager = RoutesManager(app, usecases)
 routes_manager.include_routes()
