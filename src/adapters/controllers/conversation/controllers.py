@@ -9,6 +9,7 @@ from src.core.domain.model import (
 )
 from src.adapters.services.services import Services
 
+
 router = APIRouter(
     prefix="/conversation",
     tags=["Conversation"],

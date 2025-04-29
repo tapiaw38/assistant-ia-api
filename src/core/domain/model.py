@@ -9,6 +9,7 @@ class SenderEnum(str, Enum):
     user = "user"
     assistant = "assistant"
 
+
 class Message(BaseModel):
     id: str = Field(
         default_factory=lambda: str(uuid4()),
@@ -17,6 +18,7 @@ class Message(BaseModel):
     content: str
     sender: SenderEnum
     created_at: datetime
+
 
 class Conversation(BaseModel):
     id: str = Field(
@@ -32,3 +34,30 @@ class Conversation(BaseModel):
         allow_population_by_field_name = True
 
 
+class ApiKey(BaseModel):
+    id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        alias="_id",
+    )
+    value: str
+    description: str
+    created_at: datetime
+
+
+class Profile(BaseModel):
+    id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        alias="_id",
+    )
+
+    assistant_name: Optional[str] = None
+    business_name: Optional[str] = None
+    prompt: Optional[str] = None
+    prompt_context: Optional[str] = None
+    user_id: Optional[str] = None
+    created_at: Optional[datetime] = Field(default=None)
+    updated_at: Optional[datetime] = Field(default=None)
+    api_keys: list[ApiKey] = Field(default_factory=list)
+
+    class Config:
+        allow_population_by_field_name = True

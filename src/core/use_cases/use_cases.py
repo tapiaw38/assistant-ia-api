@@ -1,22 +1,39 @@
 from dataclasses import dataclass
-from src.core.use_cases.conversation.use_case import CreateUseCase, FindByUserIdUseCase, AddMessageUseCase
 from src.core.platform.appcontext.appcontext import Factory
+from src.core.use_cases.conversation import use_case as conversation_use_case
+from src.core.use_cases.profile import use_case as profile_use_case
+
+
+@dataclass
+class Profile:
+    create_usecase: profile_use_case.CreateUseCase
+    find_by_user_id_usecase: profile_use_case.FindByUserIdUseCase
+    update_usecase: profile_use_case.UpdateUseCase
+
 
 @dataclass
 class Conversation:
-    create_usecase: CreateUseCase
-    find_by_user_id_usecase: FindByUserIdUseCase
-    add_message_usecase: AddMessageUseCase
+    create_usecase: conversation_use_case.CreateUseCase
+    find_by_user_id_usecase: conversation_use_case.FindByUserIdUseCase
+    add_message_usecase: conversation_use_case.AddMessageUseCase
+
 
 @dataclass
 class Usecases:
+    profile: Profile
     conversation: Conversation
+
 
 def create_usecases(context_factory: Factory) -> Usecases:
     return Usecases(
+        profile=Profile(
+            create_usecase=profile_use_case.CreateUseCase(context_factory),
+            find_by_user_id_usecase=profile_use_case.FindByUserIdUseCase(context_factory),
+            update_usecase=profile_use_case.UpdateUseCase(context_factory),
+        ),
         conversation=Conversation(
-            create_usecase=CreateUseCase(context_factory),
-            find_by_user_id_usecase=FindByUserIdUseCase(context_factory),
-            add_message_usecase=AddMessageUseCase(context_factory),
+            create_usecase=conversation_use_case.CreateUseCase(context_factory),
+            find_by_user_id_usecase=conversation_use_case.FindByUserIdUseCase(context_factory),
+            add_message_usecase=conversation_use_case.AddMessageUseCase(context_factory),
         )
     )

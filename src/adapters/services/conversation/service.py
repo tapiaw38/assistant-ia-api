@@ -8,6 +8,7 @@ from src.core.domain.model import (
 )
 from src.core.use_cases.use_cases import Conversation
 
+
 class ConversationService:
     def __init__(self, usecase: Conversation):
         self.usecase = usecase

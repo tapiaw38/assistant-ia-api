@@ -44,6 +44,9 @@ class MongoDBClient(Client):
     def delete_one(self, filter: dict) -> DeleteResult:
         return self._collection.delete_one(filter)
 
+    def create_index(self, key: str, unique: bool = False) -> None:
+        self._collection.create_index(key, unique=unique)
+
     def run_migrations(self, migration_collection: collection.Collection, migrations: List[Migration]) -> None:
         for migration in migrations:
             existing = migration_collection.find_one({
