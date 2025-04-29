@@ -23,15 +23,16 @@ async def create_conversation(
     conversation: ConversationInput,
     service: Services = Depends(get_instance)
 ):
-    conversation = await service.conversation.create(conversation)
+    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
+    conversation = await service.conversation.create(conversation, mock_user_id)
     return conversation
 
-@router.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+@router.get("/user", status_code=status.HTTP_200_OK)
 async def find_conversations_by_user_id(
-    user_id: str,
     service: Services = Depends(get_instance)
 ):
-    conversations = await service.conversation.find_by_user_id(user_id)
+    mock_user_id = "mock_user_id"
+    conversations = await service.conversation.find_by_user_id(mock_user_id)
     return conversations
 
 @router.post("/{conversation_id}/message", status_code=status.HTTP_200_OK)

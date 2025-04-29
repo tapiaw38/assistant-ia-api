@@ -6,20 +6,33 @@ from src.core.domain.model import (
     Conversation,
     Message,
     SenderEnum,
+    Profile,
 )
 from datetime import datetime, timezone
 from pymongo.errors import PyMongoError
 from src.core.platform.appcontext.appcontext import Factory
-
+from uuid import uuid4
 
 class CreateUseCase:
     def __init__(self, context_factory: Factory):
         self.context_factory = context_factory()
 
-    def execute(self, conversation: ConversationInput):
+    def execute(self, conversation: ConversationInput, user_id: str) -> Conversation:
         try:
+            profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
+            generated_id = str(uuid4())
             new_conversation = Conversation(
-                user_id=conversation.user_id,
+                _id= generated_id,
+                profile= Profile(
+                    id=profile.id,
+                    user_id=profile.user_id,
+                    assistant_name=profile.assistant_name,
+                    business_name=profile.business_name,
+                    functions=profile.functions,
+                    business_context=profile.business_context,
+                    created_at=profile.created_at,
+                    updated_at=profile.updated_at,
+                ),
                 title=conversation.title,
                 created_at=datetime.now(timezone.utc),
             )
@@ -88,7 +101,8 @@ class AddMessageUseCase:
             response = await self.context_factory.integrations.openai.ask(
                 new_message.content,
                 message.context,
-                self.convert_messages_to_string(search_conversation.messages)
+                self.convert_messages_to_string(search_conversation.messages),
+                search_conversation.profile,
             )
 
             response_message = Message(

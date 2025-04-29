@@ -25,7 +25,7 @@ class RepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def update(self, profile: Profile) -> str:
+    def update(self, user_id: str, profile: Profile) -> str:
         pass
 
     @abstractmethod
@@ -75,16 +75,19 @@ class Repository(RepositoryInterface):
 
     def update(self, id: str, profile: Profile) -> str:
         try:
-            profile_dict = profile.dict(exclude_none=True, exclude_unset=True)
+            profile_dict = profile.dict(
+                exclude_none=True,
+                by_alias=True
+            )
             result = self.client.update_one(
                 {"_id": id},
                 {"$set": profile_dict},
             )
 
             if result.matched_count == 0:
-                raise Exception(f"No profile found with id: {profile.id}")
+                raise Exception(f"No profile found with id: {id}")
 
-            return profile.id
+            return id
 
         except PyMongoError as e:
             raise Exception(f"Error updating profile: {e}")

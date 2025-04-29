@@ -9,9 +9,9 @@ class ProfileService:
     def __init__(self, usecase: Profile):
         self.usecase = usecase
 
-    async def create(self, profile: ProfileInput):
+    async def create(self, profile: ProfileInput, user_id: str):
         try:
-            created_profile = self.usecase.create_usecase.execute(profile)
+            created_profile = self.usecase.create_usecase.execute(profile, user_id)
 
             if created_profile is None:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Profile not created")
@@ -28,9 +28,9 @@ class ProfileService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    async def update(self, id: str, profile: ProfileInput):
+    async def update(self, user_id: str, profile: ProfileInput):
         try:
-            profile = self.usecase.update_usecase.execute(id, profile)
+            profile = self.usecase.update_usecase.execute(user_id, profile)
             return profile
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

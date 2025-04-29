@@ -13,9 +13,9 @@ class ConversationService:
     def __init__(self, usecase: Conversation):
         self.usecase = usecase
 
-    async def create(self, conversation: ConversationInput):
+    async def create(self, conversation: ConversationInput, user_id: str):
         try:
-            created_conversation = self.usecase.create_usecase.execute(conversation)
+            created_conversation = self.usecase.create_usecase.execute(conversation, user_id)
 
             if created_conversation is None:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Conversation not created")

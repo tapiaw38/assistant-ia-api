@@ -31,7 +31,7 @@ class Repository(RepositoryInterface):
 
     def create(self, conversation: Conversation) -> str:
         try:
-            conversation_dict = conversation.dict(by_alias=True)
+            conversation_dict = conversation.dict(by_alias=True, exclude_none=True)
             result = self.client.insert_one(conversation_dict)
             conversation_id = str(result.inserted_id)
             return conversation_id
@@ -49,7 +49,7 @@ class Repository(RepositoryInterface):
 
     def find_user_id(self, user_id: str) -> List[Conversation]:
         try:
-            documents = self.client.find({"user_id": user_id})
+            documents = self.client.find({"profile.user_id": user_id})
             return [
                 Conversation(**{**doc, "id": str(doc["_id"])}) for doc in documents
             ]
