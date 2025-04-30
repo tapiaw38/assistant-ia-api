@@ -11,6 +11,8 @@ from src.core.platform.nosql.client import MongoDBClient
 from src.adapters.datasources.datasources import Datasources
 from src.core.platform.appcontext.appcontext import new_factory
 from src.core.use_cases.use_cases import create_usecases
+from src.core.platform.nosql.migrations import execute_profile_migrations
+
 
 app = FastAPI(
     title="Assistant IA API",
@@ -49,6 +51,8 @@ profiles_client = MongoDBClient(
     config_service.nosql_config.profiles.database,
     config_service.nosql_config.profiles.collection,
 )
+
+profiles_client.run_migrations(migrations_client.get_collection(), execute_profile_migrations())
 
 datasources = Datasources.create_datasources(
     no_sql_hotel_client=conversations_client,

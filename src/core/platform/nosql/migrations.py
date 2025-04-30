@@ -1,13 +1,20 @@
-from abc import ABC, abstractmethod
-from pymongo.database import Database
+from typing import List
 
-class Migration(ABC):
-    version: int
 
-    @abstractmethod
-    def up(self, db: Database) -> None:
-        pass
+class Migration:
+    def __init__(self, version: int, up: callable):
+        self.version = version
+        self.up = up
 
-    @abstractmethod
-    def down(self, db: Database) -> None:
-        pass
+
+def execute_profile_migrations() -> List[Migration]:
+    return [
+        Migration(
+            version=1,
+            up=lambda db: db["profiles"].update_many(
+                {},
+                {"$set": {"is_active": True}}
+            )
+        ),
+        # Add more migrations here
+    ]
