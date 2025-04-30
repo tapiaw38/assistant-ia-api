@@ -29,6 +29,7 @@ class Profile(BaseModel):
     user_id: Optional[str] = None
     created_at: Optional[datetime] = Field(default=None)
     updated_at: Optional[datetime] = Field(default=None)
+    is_active: Optional[bool] = Field(default=True)
     api_keys: list[ApiKey] = Field(default_factory=list)
 
     class Config:

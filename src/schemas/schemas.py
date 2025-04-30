@@ -17,3 +17,7 @@ class ProfileInput(BaseModel):
     business_name: Optional[str] = None
     functions: Optional[str] = None
     business_context: Optional[str] = None
+
+
+class ProfileStatusInput(BaseModel):
+    is_active: bool

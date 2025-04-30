@@ -35,3 +35,10 @@ class ProfileService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+    async def change_status(self, user_id: str, status: bool):
+        try:
+            profile = self.usecase.change_status_usecase.execute(user_id, status)
+            return profile
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+

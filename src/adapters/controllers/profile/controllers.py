@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Depends
 from src.schemas.schemas import (
     ProfileInput,
+    ProfileStatusInput,
 )
 from src.adapters.services.services import Services
 
@@ -38,4 +39,14 @@ async def update_profile(
 ):
     mock_user_id = "mock_user_id" # TODO: replace with user_id in request
     profile = await service.profile.update(mock_user_id, profile)
+    return profile
+
+
+@router.post("/status", status_code=status.HTTP_200_OK)
+async def change_status(
+    status_input: ProfileStatusInput,
+    service: Services = Depends(get_instance)
+):
+    mock_user_id = "mock_user_id"  # TODO: replace with user_id in request
+    profile = await service.profile.change_status(mock_user_id, status_input.is_active)
     return profile
