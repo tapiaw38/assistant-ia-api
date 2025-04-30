@@ -78,7 +78,7 @@ class AddMessageUseCase:
 
         return " - ".join(message_objects)
 
-    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum) -> list[Message]:
+    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str) -> list[Message]:
         new_message = Message(
             content=message.content,
             sender=sender,
@@ -89,6 +89,9 @@ class AddMessageUseCase:
             search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
             if not search_conversation:
                 raise Exception("Conversation not found")
+
+            if user_id != search_conversation.profile.user_id:
+                raise Exception("User not authorized to add message")
 
             if not hasattr(search_conversation, "messages") or search_conversation.messages is None:
                 search_conversation.messages = []
@@ -125,3 +128,28 @@ class AddMessageUseCase:
 
         except Exception as e:
             raise Exception(f"Error executing AddMessageUseCase: {e}")
+
+
+class DeleteAllMessagesUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory()
+
+    async def execute(self, conversation_id: str, user_id: str):
+        try:
+            search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
+            if not search_conversation:
+                raise Exception("Conversation not found")
+
+            if user_id != search_conversation.profile.user_id:
+                raise Exception("User not authorized to delete messages")
+
+            self.context_factory.repositories.conversation.update_messages_by_id(
+                conversation_id,
+                [],
+            )
+
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with the database: {e}")
+
+        except Exception as e:
+            raise Exception(f"Error executing DeleteAllMessagesUseCase: {e}")

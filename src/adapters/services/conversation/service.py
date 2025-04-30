@@ -32,9 +32,15 @@ class ConversationService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum):
+    async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str):
         try:
-            messages = await self.usecase.add_message_usecase.execute(conversation_id, message, sender)
+            messages = await self.usecase.add_message_usecase.execute(conversation_id, message, sender, user_id)
             return messages
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def delete_all_messages(self, conversation_id: str, user_id: str):
+        try:
+            await self.usecase.delete_all_messages_usecase.execute(conversation_id, user_id)
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

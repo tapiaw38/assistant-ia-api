@@ -31,7 +31,7 @@ async def create_conversation(
 async def find_conversations_by_user_id(
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id"
+    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
     conversations = await service.conversation.find_by_user_id(mock_user_id)
     return conversations
 
@@ -42,5 +42,15 @@ async def add_message(
     service: Services = Depends(get_instance)
 ):
     sender = SenderEnum.user
-    messages = await service.conversation.add_message(conversation_id, message, sender)
+    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
+    messages = await service.conversation.add_message(conversation_id, message, sender, mock_user_id)
     return messages
+
+@router.delete("/{conversation_id}/message", status_code=status.HTTP_200_OK)
+async def delete_all_messages(
+    conversation_id: str,
+    service: Services = Depends(get_instance)
+):
+    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
+    await service.conversation.delete_all_messages(conversation_id, mock_user_id)
+    return {"message": "ok"}

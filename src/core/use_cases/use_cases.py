@@ -17,6 +17,7 @@ class Conversation:
     create_usecase: conversation_use_case.CreateUseCase
     find_by_user_id_usecase: conversation_use_case.FindByUserIdUseCase
     add_message_usecase: conversation_use_case.AddMessageUseCase
+    delete_all_messages_usecase: conversation_use_case.DeleteAllMessagesUseCase
 
 
 @dataclass
@@ -37,5 +38,6 @@ def create_usecases(context_factory: Factory) -> Usecases:
             create_usecase=conversation_use_case.CreateUseCase(context_factory),
             find_by_user_id_usecase=conversation_use_case.FindByUserIdUseCase(context_factory),
             add_message_usecase=conversation_use_case.AddMessageUseCase(context_factory),
+            delete_all_messages_usecase=conversation_use_case.DeleteAllMessagesUseCase(context_factory),
         )
     )
