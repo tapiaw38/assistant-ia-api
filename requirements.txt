@@ -14,3 +14,4 @@ mongomock
 dotenv
 debugpy
 pytest
+PyJWT==2.8.0

@@ -1,13 +1,13 @@
 from fastapi import FastAPI
-from src.adapters.controllers.conversation.controllers import router as conversation_router
-from src.adapters.controllers.profile.controllers import router as profile_router
+from src.adapters.web.controllers.conversation.controllers import router as conversation_router
+from src.adapters.web.controllers.profile.controllers import router as profile_router
 from src.core.use_cases.use_cases import Usecases
 from src.adapters.services.conversation.service import ConversationService
 from src.adapters.services.profile.service import ProfileService
 from src.adapters.services.services import (
     Services
 )
-
+from src.adapters.web.middlewares.authorization import authorization_middleware
 
 class RoutesManager:
     def __init__(self, app: FastAPI, usecases: Usecases):
@@ -27,3 +27,4 @@ class RoutesManager:
 
         self.app.include_router(profile_router)
         self.app.include_router(conversation_router)
+        self.app.middleware("http")(authorization_middleware)

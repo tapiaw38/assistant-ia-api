@@ -1,7 +1,7 @@
 from typing import Callable, Optional
 from src.core.platform.config.service import ConfigurationService
 from src.adapters.datasources.datasources import Datasources
-from src.adapters.integrations.integrations import Integrations
+from src.adapters.web.integrations.integrations import Integrations
 from src.adapters.datasources.repositories.repositories import Repositories
 
 class Context:

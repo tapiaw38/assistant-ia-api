@@ -1,7 +1,7 @@
 from src.core.platform.config.service import ConfigurationService
 from openai import AsyncOpenAI
 from typing import Optional
-from src.adapters.integrations.openapi.context import CONTEXT_INFORMATION
+from src.adapters.web.integrations.openapi.context import CONTEXT_INFORMATION
 from src.core.domain.model import Profile
 
 class OpenAIIntegration:

@@ -26,6 +26,7 @@ def read_config() -> ConfigurationService:
             port=os.getenv("APP_PORT", "8000"),
             host=os.getenv("APP_HOST", "localhost"),
             jwt_secret=os.getenv("APP_JWT_SECRET", "secret"),
+            encryption_algorithm=os.getenv("APP_ENCRYPTION_ALGORITHM", "HS256"),
         ),
         nosql_config=NoSQLConfig(
             migrations=NoSQLConfig(

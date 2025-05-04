@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Request
 from src.schemas.schemas import (
     ProfileInput,
     ProfileStatusInput,
@@ -17,36 +17,41 @@ def get_instance() -> Services:
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_profile(
     profile: ProfileInput,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    profile = await service.profile.create(profile, mock_user_id)
+    user_id = request.state.user.get("user_id")
+    print(user_id)
+    profile = await service.profile.create(profile, user_id)
     return profile
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def find_profile_by_user_id(
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    profile = await service.profile.find_by_user_id(mock_user_id)
+    user_id = request.state.user.get("user_id")
+    profile = await service.profile.find_by_user_id(user_id)
     return profile
 
 @router.patch("/", status_code=status.HTTP_200_OK)
 async def update_profile(
     profile: ProfileInput,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    profile = await service.profile.update(mock_user_id, profile)
+    user_id = request.state.user.get("user_id")
+    profile = await service.profile.update(user_id, profile)
     return profile
 
 
 @router.post("/status", status_code=status.HTTP_200_OK)
 async def change_status(
     status_input: ProfileStatusInput,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id"  # TODO: replace with user_id in request
-    profile = await service.profile.change_status(mock_user_id, status_input.is_active)
+    user_id = request.state.user.get("user_id")
+    profile = await service.profile.change_status(user_id, status_input.is_active)
     return profile

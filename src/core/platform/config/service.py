@@ -28,6 +28,7 @@ class ServerConfig:
     port: str
     host: str
     jwt_secret: str
+    encryption_algorithm: str
 
 @dataclass
 class OpenAIConfig:
@@ -66,6 +67,7 @@ def read_config() -> ConfigurationService:
         port=get_env("APP_PORT", "8000"),
         host=get_env("APP_HOST", "localhost"),
         jwt_secret=get_env("APP_JWT_SECRET", "secret"),
+        encryption_algorithm=get_env("APP_ENCRYPTION_ALGORITHM", "HS256"),
     )
 
     nosql_config = NoSQLConfig(

@@ -1,7 +1,7 @@
 // init-mongo.js
 
 // Read environment variables
-const dbName = process.env.DB_NAME || "assistant-ia-db";
+const dbName = process.env.DB_NAME || "assistant-ia-mongo";
 const rootUser = process.env.DB_USER || "admin";
 const rootPassword = process.env.DB_PASSWORD || "admin";
 

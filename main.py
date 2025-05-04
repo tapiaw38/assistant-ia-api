@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes.routes_manager import RoutesManager
-from src.adapters.integrations.integrations import create_integrations
+from src.adapters.web.integrations.integrations import create_integrations
 from src.core.platform.config.service import (
     init_config,
     get_config_service

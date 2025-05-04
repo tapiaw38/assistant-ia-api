@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Request
 from src.schemas.schemas import (
     ConversationInput,
     MessageInput,
@@ -21,36 +21,40 @@ def get_instance() -> Services:
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_conversation(
     conversation: ConversationInput,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    conversation = await service.conversation.create(conversation, mock_user_id)
+    user_id = request.state.user.get("user_id")
+    conversation = await service.conversation.create(conversation, user_id)
     return conversation
 
 @router.get("/user", status_code=status.HTTP_200_OK)
 async def find_conversations_by_user_id(
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    conversations = await service.conversation.find_by_user_id(mock_user_id)
+    user_id = request.state.user.get("user_id")
+    conversations = await service.conversation.find_by_user_id(user_id)
     return conversations
 
 @router.post("/{conversation_id}/message", status_code=status.HTTP_200_OK)
 async def add_message(
     conversation_id: str,
     message: MessageInput,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
     sender = SenderEnum.user
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    messages = await service.conversation.add_message(conversation_id, message, sender, mock_user_id)
+    user_id = request.state.user.get("user_id")
+    messages = await service.conversation.add_message(conversation_id, message, sender, user_id)
     return messages
 
 @router.delete("/{conversation_id}/message", status_code=status.HTTP_200_OK)
 async def delete_all_messages(
     conversation_id: str,
+    request: Request,
     service: Services = Depends(get_instance)
 ):
-    mock_user_id = "mock_user_id" # TODO: replace with user_id in request
-    await service.conversation.delete_all_messages(conversation_id, mock_user_id)
+    user_id = request.state.user.get("user_id")
+    await service.conversation.delete_all_messages(conversation_id, user_id)
     return {"message": "ok"}
