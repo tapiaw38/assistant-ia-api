@@ -89,7 +89,7 @@ def read_config() -> ConfigurationService:
     )
 
     openai_config = OpenAIConfig(
-        api_key=get_env("OPENAI_API_KEY", "sk-dce04e45febe486bbeb49b452d608e07"),
+        api_key=get_env("OPENAI_API_KEY", ""),
         base_url=get_env("OPENAI_BASE_URL", "https://api.deepseek.com"),
         model=get_env("OPENAI_MODEL", "deepseek-chat"),
         role=get_env("OPENAI_ROLE", "user"),
