@@ -113,7 +113,7 @@ class MessageOutput(BaseModel):
             data=MessageOutputData(
                 id=message.id,
                 content=message.content,
-                sender=str(message.sender),
+                sender=message.sender,
                 created_at=message.created_at,
             )
         )

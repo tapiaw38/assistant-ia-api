@@ -18,6 +18,9 @@ async def decode_token(token: str):
 
 
 async def authorization_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     authorization: Optional[str] = request.headers.get("Authorization")
     if not authorization:
         return Response("Token is missing", status_code=status.HTTP_401_UNAUTHORIZED)
