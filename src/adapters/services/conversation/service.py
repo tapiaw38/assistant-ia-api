@@ -41,6 +41,7 @@ class ConversationService:
 
     async def delete_all_messages(self, conversation_id: str, user_id: str):
         try:
-            await self.usecase.delete_all_messages_usecase.execute(conversation_id, user_id)
+            messages = await self.usecase.delete_all_messages_usecase.execute(conversation_id, user_id)
+            return messages
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

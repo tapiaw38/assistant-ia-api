@@ -1,5 +1,5 @@
 from src.schemas.schemas import (
-    ProfileInput,
+    ProfileInput, ProfileOutput
 )
 from src.core.domain.model import (
     Profile,
@@ -34,7 +34,7 @@ class CreateUseCase:
             if not created_profile:
                 raise Exception("Error profile not found after creation")
 
-            return created_profile
+            return ProfileOutput.from_output(created_profile)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -52,7 +52,7 @@ class FindByUserIdUseCase:
             profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
             if not profile:
                 raise Exception(f"No profile found with user_id: {user_id}")
-            return profile
+            return ProfileOutput.from_output(profile)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -87,7 +87,7 @@ class UpdateUseCase:
             if not profile_updated:
                 raise Exception(f"No profile found with user_id: {user_id} after update")
 
-            return profile_updated
+            return ProfileOutput.from_output(profile_updated)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -119,7 +119,7 @@ class ChangeStatusUseCase:
             if not profile_updated:
                 raise Exception(f"No profile found with user_id: {user_id} after update")
 
-            return profile_updated
+            return ProfileOutput.from_output(profile_updated)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")

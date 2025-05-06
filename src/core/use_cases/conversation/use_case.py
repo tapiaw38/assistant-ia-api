@@ -1,6 +1,9 @@
 from src.schemas.schemas import (
     ConversationInput,
     MessageInput,
+    ConversationOutput,
+    ConversationListOutput,
+    MessageListOutput,
 )
 from src.core.domain.model import (
     Conversation,
@@ -44,7 +47,7 @@ class CreateUseCase:
             if not created_conversation:
                 raise Exception("Error conversation not found after creation")
 
-            return created_conversation
+            return ConversationOutput.from_output(created_conversation)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -59,7 +62,7 @@ class FindByUserIdUseCase:
     def execute(self, user_id: str):
         try:
             conversations = self.context_factory.repositories.conversation.find_user_id(user_id)
-            return conversations
+            return ConversationListOutput.from_output(conversations)
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
 
@@ -121,7 +124,7 @@ class AddMessageUseCase:
                 search_conversation.messages,
             )
 
-            return search_conversation.messages
+            return MessageListOutput.from_output(search_conversation.messages)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with the database: {e}")
@@ -147,6 +150,10 @@ class DeleteAllMessagesUseCase:
                 conversation_id,
                 [],
             )
+
+            search_conversation.messages = []
+
+            return MessageListOutput.from_output(search_conversation.messages)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with the database: {e}")

@@ -56,5 +56,5 @@ async def delete_all_messages(
     service: Services = Depends(get_instance)
 ):
     user_id = request.state.user.get("user_id")
-    await service.conversation.delete_all_messages(conversation_id, user_id)
-    return {"message": "ok"}
+    messages = await service.conversation.delete_all_messages(conversation_id, user_id)
+    return messages
