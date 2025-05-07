@@ -62,6 +62,14 @@ def get_env(key: str, fallback: str) -> str:
 def read_config() -> ConfigurationService:
     load_dotenv()
 
+    db_user = get_env("DB_USER", "admin")
+    db_password = get_env("DB_PASSWORD", "admin")
+    db_host = get_env("DB_HOST", "localhost")
+    db_port = get_env("DB_PORT", "27017")
+    db_name = get_env("DB_NAME", "assistant-ia-db")
+
+    database_uri = f"mongodb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
     server_config = ServerConfig(
         mode=ModeServer(get_env("APP_MODE", "release")),
         port=get_env("APP_PORT", "8000"),
@@ -72,17 +80,17 @@ def read_config() -> ConfigurationService:
 
     nosql_config = NoSQLConfig(
         migrations=NoSQLCollectionConfig(
-            database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
+            database_uri=database_uri,
             database=get_env("DB_NAME", "assistant-ia-db"),
             collection=get_env("DB_COLLECTION_MIGRATIONS", "migrations"),
         ),
         conversations=NoSQLCollectionConfig(
-            database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
+            database_uri=database_uri,
             database=get_env("DB_NAME", "assistant-ia-db"),
             collection=get_env("DB_COLLECTION_CONVERSATIONS", "conversations"),
         ),
         profiles=NoSQLCollectionConfig(
-            database_uri=get_env("DATABASE_URI", "mongodb://localhost:27017"),
+            database_uri=database_uri,
             database=get_env("DB_NAME", "assistant-ia-db"),
             collection=get_env("DB_COLLECTION_PROFILES", "profiles"),
         ),
