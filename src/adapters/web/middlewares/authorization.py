@@ -17,10 +17,12 @@ async def decode_token(token: str):
     except PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+EXCLUDED_PATHS = {"/docs", "/docs/", "/openapi.json", "/redoc", "/redoc/"}
 
 async def authorization_middleware(request: Request, call_next):
-    if request.url.path.startswith("/docs"):
+    if request.url.path in EXCLUDED_PATHS:
         return await call_next(request)
+
     if request.method == "OPTIONS":
         return await call_next(request)
 
