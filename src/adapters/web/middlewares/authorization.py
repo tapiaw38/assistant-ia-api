@@ -19,6 +19,8 @@ async def decode_token(token: str):
 
 
 async def authorization_middleware(request: Request, call_next):
+    if request.url.path.startswith("/docs"):
+        return await call_next(request)
     if request.method == "OPTIONS":
         return await call_next(request)
 

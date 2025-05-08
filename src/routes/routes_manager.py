@@ -7,6 +7,8 @@ from src.adapters.services.profile.service import ProfileService
 from src.adapters.services.services import (
     Services
 )
+from src.adapters.web.middlewares.authorization import authorization_middleware
+
 
 class RoutesManager:
     def __init__(self, app: FastAPI, usecases: Usecases):
@@ -24,5 +26,6 @@ class RoutesManager:
 
         self.app.dependency_overrides[Services.get_instance] = lambda: services
 
+        self.app.middleware("http")(authorization_middleware)
         self.app.include_router(profile_router)
         self.app.include_router(conversation_router)
