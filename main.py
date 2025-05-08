@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from src.routes.routes_manager import RoutesManager
 from src.adapters.web.integrations.integrations import create_integrations
 from src.core.platform.config.service import (
@@ -13,7 +14,6 @@ from src.core.platform.appcontext.appcontext import new_factory
 from src.core.use_cases.use_cases import create_usecases
 from src.core.platform.nosql.migrations import execute_profile_migrations
 from src.adapters.web.middlewares.authorization import authorization_middleware
-from fastapi.middleware.base import BaseHTTPMiddleware
 
 
 app = FastAPI(
