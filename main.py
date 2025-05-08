@@ -12,6 +12,8 @@ from src.adapters.datasources.datasources import Datasources
 from src.core.platform.appcontext.appcontext import new_factory
 from src.core.use_cases.use_cases import create_usecases
 from src.core.platform.nosql.migrations import execute_profile_migrations
+from src.adapters.web.middlewares.authorization import authorization_middleware
+from fastapi.middleware.base import BaseHTTPMiddleware
 
 
 app = FastAPI(
@@ -38,9 +40,11 @@ app.add_middleware(
 async def redirect_to_docs():
     return RedirectResponse(url="/docs")
 
+app.add_middleware(BaseHTTPMiddleware, dispatch=authorization_middleware)
 
 init_config()
 config_service = get_config_service()
+
 
 migrations_client = MongoDBClient(
     config_service.nosql_config.migrations.database_uri,
