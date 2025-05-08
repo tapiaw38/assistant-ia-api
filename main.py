@@ -13,8 +13,6 @@ from src.adapters.datasources.datasources import Datasources
 from src.core.platform.appcontext.appcontext import new_factory
 from src.core.use_cases.use_cases import create_usecases
 from src.core.platform.nosql.migrations import execute_profile_migrations
-from src.adapters.web.middlewares.authorization import authorization_middleware
-
 
 app = FastAPI(
     title="Assistant IA API",
@@ -33,8 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-app.add_middleware(BaseHTTPMiddleware, dispatch=authorization_middleware)
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
