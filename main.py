@@ -34,11 +34,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.add_middleware(BaseHTTPMiddleware, dispatch=authorization_middleware)
+
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
     return RedirectResponse(url="/docs")
-
-app.add_middleware(BaseHTTPMiddleware, dispatch=authorization_middleware)
 
 init_config()
 config_service = get_config_service()
