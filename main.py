@@ -22,6 +22,7 @@ app = FastAPI(
 
 origins = [
     "http://localhost",
+    "http://assistant-ia-fe.s3-website-sa-east-1.amazonaws.com"
     "*",
 ]
 
