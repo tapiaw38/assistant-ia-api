@@ -7,7 +7,7 @@ from src.adapters.services.profile.service import ProfileService
 from src.adapters.services.services import (
     Services
 )
-from src.adapters.web.middlewares.authorization import authorization_middleware
+from src.adapters.web.middlewares.authorization import AuthorizationMiddleware
 
 
 class RoutesManager:
@@ -26,6 +26,6 @@ class RoutesManager:
 
         self.app.dependency_overrides[Services.get_instance] = lambda: services
 
-        self.app.middleware("http")(authorization_middleware)
+        self.app.add_middleware(AuthorizationMiddleware)
         self.app.include_router(profile_router)
         self.app.include_router(conversation_router)

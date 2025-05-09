@@ -25,13 +25,20 @@ class RepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    def find_all_user_ids(self) -> List[str]:
+        pass
+
+    @abstractmethod
     def update(self, user_id: str, profile: Profile) -> str:
         pass
 
     @abstractmethod
-    def generate_api_key(self, api_keys: list[ApiKey]) -> None:
+    def update_api_keys(self, user_id: str, api_keys: List[ApiKey]) -> Optional[List[ApiKey]]:
         pass
 
+    @abstractmethod
+    def delete_api_key(self, user_id: str, api_key_id: str) -> None:
+        pass
 
 class Repository(RepositoryInterface):
     def __init__(self, datasources: Datasources):
@@ -73,6 +80,13 @@ class Repository(RepositoryInterface):
         except PyMongoError as e:
             raise Exception(f"Error finding profile by user_id: {e}")
 
+    def find_all_user_ids(self) -> List[str]:
+        try:
+            documents = self.client.find({}, {"_id": 0, "user_id": 1})
+            return [doc.get("user_id") for doc in documents if doc.get("user_id")]
+        except PyMongoError as e:
+            raise RuntimeError(f"Error retrieving user_ids from DB: {e}")
+
     def update(self, id: str, profile: Profile) -> str:
         try:
             profile_dict = profile.dict(
@@ -92,16 +106,27 @@ class Repository(RepositoryInterface):
         except PyMongoError as e:
             raise Exception(f"Error updating profile: {e}")
 
-    def generate_api_key(self, id: str, api_keys: list[ApiKey]) -> None:
+    def update_api_keys(self, user_id: str, api_keys: List[ApiKey]) -> None:
         try:
             api_keys_dict = [api_key.dict(by_alias=True) for api_key in api_keys]
             result = self.client.update_one(
-                {"_id": id},
+                {"user_id": user_id},
                 {"$set": {"api_keys": api_keys_dict}}
             )
 
             if result.matched_count == 0:
-                raise Exception(f"No profile found with id: {id}")
+                raise Exception(f"No profile found with user_id: {user_id}")
 
         except PyMongoError as e:
             raise Exception(f"Error updating profile: {e}")
+
+    def delete_api_key(self, user_id: str, api_key_id: str) -> str:
+        try:
+            api_key = self.client.find_one({"user_id": user_id, "_id": api_key_id})
+            if not api_key:
+                raise Exception(f"No api key found with id: {api_key_id}")
+
+            self.client.delete_one({"user_id": user_id, "id": api_key_id})
+
+        except PyMongoError as e:
+            raise Exception(f"Error deleting api key: {e}")

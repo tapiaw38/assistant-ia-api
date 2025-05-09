@@ -1,9 +1,13 @@
 from fastapi import Request, HTTPException, status
+from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Optional
 import jwt
 from jwt import PyJWTError
 from src.core.platform.config.service import get_config_service
+import logging
 
+
+EXCLUDED_PATHS = {"/docs", "/docs/", "/openapi.json", "/redoc", "/redoc/"}
 
 async def decode_token(token: str):
     try:
@@ -17,24 +21,42 @@ async def decode_token(token: str):
     except PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-EXCLUDED_PATHS = {"/docs", "/docs/", "/openapi.json", "/redoc", "/redoc/"}
 
-async def authorization_middleware(request: Request, call_next):
-    if request.url.path in EXCLUDED_PATHS:
-        return await call_next(request)
+async def validate_api_key(token: str) -> Optional[str]:
+    secret_key = get_config_service().server_config.jwt_secret
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        if payload.get("type") != "api_key":
+            return None
+        print("API key valid")
+        print(payload)
+        return payload
+    except jwt.ExpiredSignatureError:
+        print("API key expired")
+        return None
+    except jwt.InvalidTokenError:
+        print("Invalid API key")
+        return None
 
-    if request.method == "OPTIONS":
-        return await call_next(request)
 
-    authorization: Optional[str] = request.headers.get("Authorization")
-    if not authorization:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing")
+class AuthorizationMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
 
-    if not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format")
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in EXCLUDED_PATHS or request.method == "OPTIONS":
+            return await call_next(request)
 
-    token = authorization.split("bearer ")[1].strip()
+        authorization: Optional[str] = request.headers.get("Authorization")
 
-    request.state.user = await decode_token(token)
+        if authorization and authorization.lower().startswith("bearer "):
+            token = authorization.split("bearer ")[1].strip()
+            request.state.user = await decode_token(token)
+            return await call_next(request)
 
-    return await call_next(request)
+        api_key = request.headers.get("x-api-key")
+        if api_key:
+            request.state.user = await validate_api_key(api_key)
+            return await call_next(request)
+
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token/api-key")

@@ -8,8 +8,11 @@ from src.core.use_cases.profile import use_case as profile_use_case
 class Profile:
     create_usecase: profile_use_case.CreateUseCase
     find_by_user_id_usecase: profile_use_case.FindByUserIdUseCase
+    find_all_user_ids_usecase: profile_use_case.FindAllUserIdsUseCase
     update_usecase: profile_use_case.UpdateUseCase
     change_status_usecase: profile_use_case.ChangeStatusUseCase
+    add_api_key_usecase: profile_use_case.AddApiKeyUseCase
+    delete_api_key_usecase: profile_use_case.DeleteApiKeyUseCase
 
 
 @dataclass
@@ -31,8 +34,11 @@ def create_usecases(context_factory: Factory) -> Usecases:
         profile=Profile(
             create_usecase=profile_use_case.CreateUseCase(context_factory),
             find_by_user_id_usecase=profile_use_case.FindByUserIdUseCase(context_factory),
+            find_all_user_ids_usecase=profile_use_case.FindAllUserIdsUseCase(context_factory),
             update_usecase=profile_use_case.UpdateUseCase(context_factory),
             change_status_usecase=profile_use_case.ChangeStatusUseCase(context_factory),
+            add_api_key_usecase=profile_use_case.AddApiKeyUseCase(context_factory),
+            delete_api_key_usecase=profile_use_case.DeleteApiKeyUseCase(context_factory),
         ),
         conversation=Conversation(
             create_usecase=conversation_use_case.CreateUseCase(context_factory),

@@ -11,12 +11,12 @@ class SenderEnum(str, Enum):
 
 
 class ApiKey(BaseModel):
-    id: str = Field(
-        default_factory=lambda: str(uuid4()),
-        alias="_id",
-    )
+    id: Optional[str] = Field(alias="_id", default=None)
+    user_id: str
     value: str
     description: str
+    is_active: bool
+    limit: int
     created_at: datetime
 
 
