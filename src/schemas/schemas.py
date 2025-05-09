@@ -173,3 +173,17 @@ class ApiKeyListOutput(BaseModel):
                 for api_key in api_keys
             ]
         )
+
+class ApiKeyDeleteOutputData(BaseModel):
+    id: str
+
+class ApiKeyDeleteOutput(BaseModel):
+    data: ApiKeyDeleteOutputData
+
+    @staticmethod
+    def from_output(api_key_id: str):
+        return ApiKeyDeleteOutput(
+            data=ApiKeyDeleteOutputData(
+                id=api_key_id,
+            )
+        )

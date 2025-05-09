@@ -1,5 +1,5 @@
 from src.schemas.schemas import (
-    ProfileInput, ProfileOutput, ApiKeyInput, ApiKeyListOutput
+    ProfileInput, ProfileOutput, ApiKeyInput, ApiKeyListOutput,ApiKeyDeleteOutput
 )
 from src.core.domain.model import (
     Profile,
@@ -201,11 +201,11 @@ class DeleteApiKeyUseCase:
     def __init__(self, context_factory: Factory):
         self.context_factory = context_factory()
 
-    def execute(self, user_id: str, api_key_id: str):
+    async def execute(self, user_id: str, api_key_id: str):
         try:
             self.context_factory.repositories.profile.delete_api_key(user_id, api_key_id)
 
-            return api_key_id
+            return ApiKeyDeleteOutput.from_output(api_key_id)
 
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")

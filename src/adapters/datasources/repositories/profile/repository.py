@@ -126,7 +126,7 @@ class Repository(RepositoryInterface):
             if not api_key:
                 raise Exception(f"No api key found with id: {api_key_id}")
 
-            self.client.delete_one({"user_id": user_id, "id": api_key_id})
+            self.client.update_one({"user_id": user_id, "_id": api_key_id}, {"$set": {"is_active": False}})
 
         except PyMongoError as e:
             raise Exception(f"Error deleting api key: {e}")
