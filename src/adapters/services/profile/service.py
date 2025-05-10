@@ -63,3 +63,10 @@ class ProfileService:
             return api_key_id
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def find_by_api_key_value(self, user_id: str, api_key_value: str):
+        try:
+            api_key = await self.usecase.find_by_api_key_value_usecase.execute(user_id, api_key_value)
+            return api_key
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

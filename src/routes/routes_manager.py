@@ -26,6 +26,6 @@ class RoutesManager:
 
         self.app.dependency_overrides[Services.get_instance] = lambda: services
 
-        self.app.add_middleware(AuthorizationMiddleware)
+        self.app.add_middleware(AuthorizationMiddleware, services=Services.get_instance())
         self.app.include_router(profile_router)
         self.app.include_router(conversation_router)

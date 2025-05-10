@@ -22,7 +22,6 @@ async def create_profile(
     service: Services = Depends(get_instance)
 ):
     user_id = request.state.user.get("user_id")
-    print(user_id)
     profile = await service.profile.create(profile, user_id)
     return profile
 

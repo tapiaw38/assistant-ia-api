@@ -35,8 +35,8 @@ class MongoDBClient(Client):
     def find(self, filter: dict) -> Cursor:
         return self._collection.find(filter)
 
-    def find_one(self, filter: dict) -> Optional[dict]:
-        return self._collection.find_one(filter)
+    def find_one(self, filter: dict, projection: Optional[dict] = None) -> Optional[dict]:
+        return self._collection.find_one(filter, projection)
 
     def update_one(self, filter: dict, update: dict) -> UpdateResult:
         return self._collection.update_one(filter, update)

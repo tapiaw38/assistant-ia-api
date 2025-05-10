@@ -1,5 +1,5 @@
 from src.schemas.schemas import (
-    ProfileInput, ProfileOutput, ApiKeyInput, ApiKeyListOutput,ApiKeyDeleteOutput
+    ProfileInput, ProfileOutput, ApiKeyInput, ApiKeyListOutput,ApiKeyDeleteOutput, ApiKeyOutput
 )
 from src.core.domain.model import (
     Profile,
@@ -157,7 +157,6 @@ class AddApiKeyUseCase:
             "exp": datetime.now(timezone.utc) + timedelta(minutes=expires_in_minutes),
             "iat": datetime.now(timezone.utc)
         }
-
         token = jwt.encode(payload, secret_key, algorithm="HS256")
         return token
 
@@ -204,7 +203,7 @@ class DeleteApiKeyUseCase:
 
     async def execute(self, user_id: str, api_key_id: str):
         try:
-            self.context_factory.repositories.profile.delete_api_key(user_id, api_key_id)
+            self.context_factory.repositories.profile.deactivate_api_key(user_id, api_key_id)
 
             return ApiKeyDeleteOutput.from_output(api_key_id)
 
@@ -213,3 +212,20 @@ class DeleteApiKeyUseCase:
 
         except Exception as e:
             raise Exception(f"Error executing DeleteApiKeyUseCase: {e}")
+
+class FindByApiKeyValueUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory()
+
+    async def execute(self, user_id: str, api_key_value: str):
+        try:
+            api_key = self.context_factory.repositories.profile.find_by_api_key_value(user_id, api_key_value)
+            if not api_key:
+                raise Exception(f"No API key found for user_id: {user_id}")
+            return api_key
+
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with database: {e}")
+
+        except Exception as e:
+            raise Exception(f"Error executing FindByApiKeyValueUseCase: {e}")
