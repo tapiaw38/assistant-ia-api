@@ -122,11 +122,15 @@ class Repository(RepositoryInterface):
 
     def delete_api_key(self, user_id: str, api_key_id: str) -> str:
         try:
-            api_key = self.client.find_one({"user_id": user_id, "_id": api_key_id})
-            if not api_key:
-                raise Exception(f"No api key found with id: {api_key_id}")
+            result = self.client.update_one(
+                {"user_id": user_id},
+                {"$pull": {"api_keys": {"_id": api_key_id}}}
+            )
 
-            self.client.update_one({"user_id": user_id, "_id": api_key_id}, {"$set": {"is_active": False}})
+            if result.modified_count == 0:
+                raise Exception("API key not found or already deleted.")
+
+            return api_key_id
 
         except PyMongoError as e:
             raise Exception(f"Error deleting api key: {e}")
