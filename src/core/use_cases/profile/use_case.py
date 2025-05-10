@@ -169,7 +169,7 @@ class AddApiKeyUseCase:
                 user_id=user_id,
                 value=self.generate_api_key(user_id),
                 description=api_key.description,
-                limit=api_key.limit,
+                limit=api_key.limit or 1000,
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
             )
