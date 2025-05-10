@@ -18,6 +18,65 @@ class MessageInput(BaseModel):
     context: Optional[str]
 
 
+class ApiKeyInput(BaseModel):
+    description: str
+
+
+class ApiKeyOutputData(BaseModel):
+    id: str
+    value: str
+    description: str
+    limit: int
+    is_active: bool
+    created_at: datetime
+
+
+class ApiKeyOutput(BaseModel):
+    data: ApiKeyOutputData
+
+    @staticmethod
+    def from_output(api_key: ApiKey):
+        return ApiKeyOutput(
+            data=ApiKeyOutputData(
+                id=api_key.id,
+                value=api_key.value,
+                description=api_key.description,
+                limit=api_key.limit,
+                is_active=api_key.is_active,
+                created_at=api_key.created_at,
+            )
+        )
+
+
+class ApiKeyListOutput(BaseModel):
+    data: List[ApiKeyOutputData]
+
+    @staticmethod
+    def from_output(api_keys: list[ApiKey]):
+        return ApiKeyListOutput(
+            data=[
+                ApiKeyOutput.from_output(api_key).data
+                for api_key in api_keys
+            ]
+        )
+
+
+class ApiKeyDeleteOutputData(BaseModel):
+    id: str
+
+
+class ApiKeyDeleteOutput(BaseModel):
+    data: ApiKeyDeleteOutputData
+
+    @staticmethod
+    def from_output(api_key_id: str):
+        return ApiKeyDeleteOutput(
+            data=ApiKeyDeleteOutputData(
+                id=api_key_id,
+            )
+        )
+
+
 class ProfileInput(BaseModel):
     assistant_name: Optional[str] = None
     business_name: Optional[str] = None
@@ -39,6 +98,7 @@ class ProfileOutputData(BaseModel):
     is_active: bool
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+    api_keys: Optional[List[ApiKey]]
 
 
 class ProfileOutput(BaseModel):
@@ -57,6 +117,7 @@ class ProfileOutput(BaseModel):
                 is_active=profile.is_active,
                 created_at=profile.created_at,
                 updated_at=profile.updated_at,
+                api_keys=profile.api_keys,
             )
         )
 
@@ -129,60 +190,4 @@ class MessageListOutput(BaseModel):
                 MessageOutput.from_output(message).data
                 for message in messages
             ]
-        )
-
-
-class ApiKeyInput(BaseModel):
-    description: str
-
-
-class ApiKeyOutputData(BaseModel):
-    id: str
-    value: str
-    description: str
-    limit: int
-    is_active: bool
-    created_at: datetime
-
-
-class ApiKeyOutput(BaseModel):
-    data: ApiKeyOutputData
-
-    @staticmethod
-    def from_output(api_key: ApiKey):
-        return ApiKeyOutput(
-            data=ApiKeyOutputData(
-                id=api_key.id,
-                value=api_key.value,
-                description=api_key.description,
-                limit=api_key.limit,
-                is_active=api_key.is_active,
-                created_at=api_key.created_at,
-            )
-        )
-
-class ApiKeyListOutput(BaseModel):
-    data: List[ApiKeyOutputData]
-
-    @staticmethod
-    def from_output(api_keys: list[ApiKey]):
-        return ApiKeyListOutput(
-            data=[
-                ApiKeyOutput.from_output(api_key).data
-                for api_key in api_keys
-            ]
-        )
-
-class ApiKeyDeleteOutputData(BaseModel):
-    id: str
-
-class ApiKeyDeleteOutput(BaseModel):
-    data: ApiKeyDeleteOutputData
-
-    @staticmethod
-    def from_output(api_key_id: str):
-        return ApiKeyDeleteOutput(
-            data=ApiKeyDeleteOutputData(
-                id=api_key_id,
-            )
         )
