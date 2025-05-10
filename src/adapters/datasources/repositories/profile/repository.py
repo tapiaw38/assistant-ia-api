@@ -120,17 +120,24 @@ class Repository(RepositoryInterface):
         except PyMongoError as e:
             raise Exception(f"Error updating profile: {e}")
 
-    def delete_api_key(self, user_id: str, api_key_id: str) -> str:
+    def deactivate_api_key(self, user_id: str, api_key_id: str) -> str:
         try:
             result = self.client.update_one(
-                {"user_id": user_id},
-                {"$pull": {"api_keys": {"_id": api_key_id}}}
+                {
+                    "user_id": user_id,
+                    "api_keys._id": api_key_id
+                },
+                {
+                    "$set": {
+                        "api_keys.$.is_active": False
+                    }
+                }
             )
 
             if result.modified_count == 0:
-                raise Exception("API key not found or already deleted.")
+                raise Exception("API key not found or already inactive.")
 
             return api_key_id
 
         except PyMongoError as e:
-            raise Exception(f"Error deleting api key: {e}")
+            raise Exception(f"Error deactivating API key: {e}")
