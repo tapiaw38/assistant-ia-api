@@ -163,13 +163,14 @@ class AddApiKeyUseCase:
 
     async def execute(self, api_key: ApiKeyInput, user_id: str):
         try:
+            default_limit = 1000
             generated_id = str(uuid4())
             new_api_key = ApiKey(
                 _id=generated_id,
                 user_id=user_id,
                 value=self.generate_api_key(user_id),
                 description=api_key.description,
-                limit=api_key.limit or 1000,
+                limit=default_limit,
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
             )

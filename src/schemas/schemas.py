@@ -134,7 +134,6 @@ class MessageListOutput(BaseModel):
 
 class ApiKeyInput(BaseModel):
     description: str
-    limit: int
 
 
 class ApiKeyOutputData(BaseModel):
