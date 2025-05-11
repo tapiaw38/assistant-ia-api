@@ -31,7 +31,7 @@ class Repository(RepositoryInterface):
 
     def create(self, conversation: Conversation) -> str:
         try:
-            conversation_dict = conversation.dict(by_alias=True, exclude_none=True)
+            conversation_dict = conversation.dict(by_alias=True, exclude_none=True, exclude_unset=True)
             result = self.client.insert_one(conversation_dict)
             conversation_id = str(result.inserted_id)
             return conversation_id

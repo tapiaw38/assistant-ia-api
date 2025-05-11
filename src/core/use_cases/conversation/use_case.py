@@ -27,7 +27,7 @@ class CreateUseCase:
             new_conversation = Conversation(
                 _id= generated_id,
                 profile= Profile(
-                    id=profile.id,
+                    _id=profile.id,
                     user_id=profile.user_id,
                     assistant_name=profile.assistant_name,
                     business_name=profile.business_name,

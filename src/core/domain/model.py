@@ -30,7 +30,7 @@ class Profile(BaseModel):
     created_at: Optional[datetime] = Field(default=None)
     updated_at: Optional[datetime] = Field(default=None)
     is_active: Optional[bool] = Field(default=True)
-    api_keys: list[ApiKey] = Field(default_factory=list)
+    api_keys: Optional[List[ApiKey]] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -51,7 +51,7 @@ class Conversation(BaseModel):
     title: str
     created_at: datetime
     profile: Profile
-    messages: Optional[List[Message]] = Field(default_factory=list)
+    messages: Optional[List[Message]] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True

@@ -51,7 +51,7 @@ class Repository(RepositoryInterface):
 
     def create(self, profile: Profile) -> str:
         try:
-            profile_dict = profile.dict(by_alias=True)
+            profile_dict = profile.dict(by_alias=True, exclude_unset=True, exclude_none=True)
             result = self.client.insert_one(profile_dict)
             profile_id = str(result.inserted_id)
             return profile_id
