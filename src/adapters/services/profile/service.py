@@ -70,3 +70,10 @@ class ProfileService:
             return api_key
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def update_iteration_limit(self, user_id: str, iteration_limit: int):
+        try:
+            profile = await self.usecase.update_iteration_limit_usecase.execute(user_id, iteration_limit)
+            return profile
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

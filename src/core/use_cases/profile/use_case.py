@@ -19,6 +19,7 @@ class CreateUseCase:
     def execute(self, profile: ProfileInput, user_id: str):
         try:
             generated_id = str(uuid4())
+            iteration_limit = 100
             new_profile = Profile(
                 _id= generated_id,
                 user_id=user_id,
@@ -28,6 +29,7 @@ class CreateUseCase:
                 business_context=profile.business_context,
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
+                iteration_limit=iteration_limit,
             )
 
             profile_id = self.context_factory.repositories.profile.create(new_profile)
@@ -229,3 +231,26 @@ class FindByApiKeyValueUseCase:
 
         except Exception as e:
             raise Exception(f"Error executing FindByApiKeyValueUseCase: {e}")
+
+
+class UpdateIterationLimitUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory()
+
+    async def execute(self, user_id: str, iteration_limit: int):
+        try:
+            profile_user_id = self.context_factory.repositories.profile.update_iteration_limit(user_id, iteration_limit)
+            if not profile_user_id:
+                raise Exception(f"No profile found with id: {profile_user_id}")
+
+            profile_updated = self.context_factory.repositories.profile.find_by_user_id(profile_user_id)
+            if not profile_updated:
+                raise Exception(f"No profile found with user_id: {user_id} after update")
+
+            return ProfileOutput.from_output(profile_updated)
+
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with database: {e}")
+
+        except Exception as e:
+            raise Exception(f"Error executing UpdateIterationLimitUseCase: {e}")

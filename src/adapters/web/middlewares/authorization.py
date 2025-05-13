@@ -35,6 +35,16 @@ async def validate_api_key(token: str, services: Services) -> Optional[str]:
         if not api_key or not api_key.is_active:
             return None
 
+        profile = await services.profile.find_by_user_id(user_id)
+        if not profile or not profile.data.is_active:
+            return None
+
+        if profile.data.iteration_limit is not None and profile.data.iteration_limit <= 0:
+            return None
+
+        updated_iteration_limit = profile.data.iteration_limit - 1
+        await services.profile.update_iteration_limit(user_id, updated_iteration_limit)
+
         return payload
 
     except jwt.ExpiredSignatureError:

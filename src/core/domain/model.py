@@ -31,6 +31,7 @@ class Profile(BaseModel):
     updated_at: Optional[datetime] = Field(default=None)
     is_active: Optional[bool] = Field(default=True)
     api_keys: Optional[List[ApiKey]] = Field(default=None)
+    iteration_limit: Optional[int] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True

@@ -14,6 +14,7 @@ class Profile:
     add_api_key_usecase: profile_use_case.AddApiKeyUseCase
     delete_api_key_usecase: profile_use_case.DeleteApiKeyUseCase
     find_by_api_key_value_usecase: profile_use_case.FindByApiKeyValueUseCase
+    update_iteration_limit_usecase: profile_use_case.UpdateIterationLimitUseCase
 
 
 @dataclass
@@ -41,6 +42,7 @@ def create_usecases(context_factory: Factory) -> Usecases:
             add_api_key_usecase=profile_use_case.AddApiKeyUseCase(context_factory),
             delete_api_key_usecase=profile_use_case.DeleteApiKeyUseCase(context_factory),
             find_by_api_key_value_usecase=profile_use_case.FindByApiKeyValueUseCase(context_factory),
+            update_iteration_limit_usecase=profile_use_case.UpdateIterationLimitUseCase(context_factory),
         ),
         conversation=Conversation(
             create_usecase=conversation_use_case.CreateUseCase(context_factory),

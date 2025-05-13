@@ -44,6 +44,11 @@ class RepositoryInterface(ABC):
     def find_by_api_key_value(self, user_id: str, api_key_value: str) -> ApiKey:
         pass
 
+    @abstractmethod
+    def update_iteration_limit(self, user_id: str, iteration_limit: int) -> str:
+        pass
+
+
 class Repository(RepositoryInterface):
     def __init__(self, datasources: Datasources):
         self.client = datasources.no_sql_profiles_client
@@ -166,3 +171,18 @@ class Repository(RepositoryInterface):
 
         except PyMongoError as e:
             raise Exception(f"Error finding API key: {e}")
+
+    def update_iteration_limit(self, user_id: str, iteration_limit: int) -> str:
+        try:
+            result = self.client.update_one(
+                {"user_id": user_id},
+                {"$set": {"iteration_limit": iteration_limit}}
+            )
+
+            if result.matched_count == 0:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+            return user_id
+
+        except PyMongoError as e:
+            raise Exception(f"Error updating profile: {e}")

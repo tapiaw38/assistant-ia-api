@@ -98,6 +98,7 @@ class ProfileOutputData(BaseModel):
     is_active: bool
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+    iteration_limit: Optional[int]
     api_keys: Optional[List[ApiKeyOutputData]]
 
 
@@ -117,6 +118,7 @@ class ProfileOutput(BaseModel):
                 is_active=profile.is_active,
                 created_at=profile.created_at,
                 updated_at=profile.updated_at,
+                iteration_limit=profile.iteration_limit,
                 api_keys=[ApiKeyOutput.from_output(api_key).data for api_key in profile.api_keys] if profile.api_keys else None,
             )
         )
@@ -179,6 +181,7 @@ class MessageOutput(BaseModel):
                 created_at=message.created_at,
             )
         )
+
 
 class MessageListOutput(BaseModel):
     data: List[MessageOutputData]
