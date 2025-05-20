@@ -15,3 +15,10 @@ dotenv
 debugpy
 pytest
 PyJWT==2.8.0
+botocore
+boto3
+python-multipart
+pandas
+openpyxl
+PyPDF2
+requests

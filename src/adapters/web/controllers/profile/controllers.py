@@ -1,9 +1,11 @@
-from fastapi import APIRouter, status, Depends, Request
+from fastapi import APIRouter, status, Depends, Request, UploadFile, File
 from src.schemas.schemas import (
     ProfileInput,
     ProfileStatusInput,
     ApiKeyInput,
+    FileInput
 )
+from typing import List
 from src.adapters.services.services import Services
 
 
@@ -77,3 +79,25 @@ async def delete_api_key(
     user_id = request.state.user.get("user_id")
     api_key_id = await service.profile.delete_api_key(user_id, api_key_id)
     return api_key_id
+
+
+@router.post("/files/upload", status_code=status.HTTP_200_OK)
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    request: Request = None,
+    service: Services = Depends(get_instance)
+):
+    user_id = request.state.user.get("user_id")
+    file_inputs = [FileInput(f) for f in files]
+    files = await service.profile.add_files(user_id, file_inputs)
+    return files
+
+@router.delete("/files/{file_id}", status_code=status.HTTP_200_OK)
+async def delete_file(
+    file_id: str,
+    request: Request,
+    service: Services = Depends(get_instance)
+):
+    user_id = request.state.user.get("user_id")
+    file_id = await service.profile.delete_file_by_id(user_id, file_id)
+    return file_id

@@ -9,6 +9,8 @@ CONTEXT_INFORMATION = (
     "Pregunta del usuario: {question}. "
     "Contexto de la pregunta: '{product_context}'. "
 
+    "Considera información adicional extraída de archivos: {product_context}. "
+
     "Si la pregunta no tiene contexto, realiza una búsqueda en internet. "
     "Si tiene contexto, intenta responder basándote en la información disponible sino en el contexto del negocio o en internet usando el sitio web. "
 

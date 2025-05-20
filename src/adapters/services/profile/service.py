@@ -1,7 +1,9 @@
 from fastapi import HTTPException, status
+from typing import List
 from src.schemas.schemas import (
     ProfileInput,
     ApiKeyInput,
+    FileInput,
 )
 from src.core.use_cases.use_cases import Profile
 
@@ -75,5 +77,19 @@ class ProfileService:
         try:
             profile = await self.usecase.update_iteration_limit_usecase.execute(user_id, iteration_limit)
             return profile
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def add_files(self, user_id: str, files: List[FileInput]):
+        try:
+            profile = await self.usecase.add_files_usecase.execute(user_id, files)
+            return profile
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def delete_file_by_id(self, user_id: str, file_id: str):
+        try:
+            file_id = await self.usecase.delete_file_by_id_usecase.execute(user_id, file_id)
+            return file_id
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

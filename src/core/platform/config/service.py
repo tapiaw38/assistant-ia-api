@@ -37,11 +37,21 @@ class OpenAIConfig:
     model: str
     role: str
 
+
+@dataclass
+class AWSConfig:
+    access_key_id: str
+    secret_access_key: str
+    region: str
+    bucket_name: str
+
+
 @dataclass
 class ConfigurationService:
     server_config: ServerConfig
     nosql_config: NoSQLConfig
     openai_config: OpenAIConfig
+    aws_config: AWSConfig
 
 _config_service: Optional[ConfigurationService] = None
 
@@ -103,10 +113,18 @@ def read_config() -> ConfigurationService:
         role=get_env("OPENAI_ROLE", "user"),
     )
 
+    aws_config = AWSConfig(
+        access_key_id=get_env("AWS_ACCESS_KEY_ID", ""),
+        secret_access_key=get_env("AWS_SECRET_ACCESS_KEY", ""),
+        region=get_env("AWS_REGION", "us-east-1"),
+        bucket_name=get_env("AWS_BUCKET_NAME", "assistant-ia-bucket"),
+    )
+
     return ConfigurationService(
         server_config=server_config, 
         nosql_config=nosql_config,
         openai_config=openai_config,
+        aws_config=aws_config,
     )
 
 

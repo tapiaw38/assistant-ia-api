@@ -13,6 +13,9 @@ from src.adapters.datasources.datasources import Datasources
 from src.core.platform.appcontext.appcontext import new_factory
 from src.core.use_cases.use_cases import create_usecases
 from src.core.platform.nosql.migrations import execute_profile_migrations
+from src.core.platform.objectstorange.s3_session import get_s3_session
+from src.adapters.storeservice.storeservice import StoreServiceImpl
+
 
 app = FastAPI(
     title="Assistant IA API",
@@ -58,12 +61,18 @@ profiles_client = MongoDBClient(
 
 profiles_client.run_migrations(migrations_client.get_collection(), execute_profile_migrations())
 
+s3_session = get_s3_session()
+store_service = StoreServiceImpl(
+    session=s3_session,
+    config=config_service
+)
+
 datasources = Datasources.create_datasources(
     no_sql_hotel_client=conversations_client,
     no_sql_locations_client=profiles_client,
 )
 integrations = create_integrations(config_service)
-context_factory = new_factory(datasources, integrations, config_service)
+context_factory = new_factory(datasources, integrations, store_service, config_service)
 usecases = create_usecases(context_factory)
 
 routes_manager = RoutesManager(app, usecases)

@@ -33,6 +33,7 @@ class CreateUseCase:
                     business_name=profile.business_name,
                     functions=profile.functions,
                     business_context=profile.business_context,
+                    files=profile.files,
                     created_at=profile.created_at,
                     updated_at=profile.updated_at,
                 ),

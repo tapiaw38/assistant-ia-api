@@ -7,6 +7,7 @@ from src.core.domain.model import (
     ApiKey,
 )
 from datetime import datetime
+from fastapi import UploadFile
 
 
 class ConversationInput(BaseModel):
@@ -77,6 +78,61 @@ class ApiKeyDeleteOutput(BaseModel):
         )
 
 
+class FileInput:
+    def __init__(self, file: UploadFile):
+        self.file = file.file
+        self.filename = file.filename
+        self.filesize = file.file._file.tell()
+        self.file_header = file.headers
+
+
+class FileOutputData(BaseModel):
+    id: str
+    name: str
+    url: str
+
+class FileOutput(BaseModel):
+    data: FileOutputData
+
+    @staticmethod
+    def from_output(file: FileOutputData):
+        return FileOutput(
+            data=FileOutputData(
+                id=file.id,
+                name=file.name,
+                url=file.url,
+            )
+        )
+
+class FileListOutput(BaseModel):
+    data: List[FileOutputData]
+
+    @staticmethod
+    def from_output(files: list[FileOutputData]):
+        return FileListOutput(
+            data=[
+                FileOutput.from_output(file).data
+                for file in files
+            ]
+        )
+
+
+class FileDeleteOutputData(BaseModel):
+    id: str
+
+
+class FileDeleteOutput(BaseModel):
+    data: FileDeleteOutputData
+
+    @staticmethod
+    def from_output(file_id: str):
+        return FileDeleteOutput(
+            data=FileDeleteOutputData(
+                id=file_id,
+            )
+        )
+
+
 class ProfileInput(BaseModel):
     assistant_name: Optional[str] = None
     business_name: Optional[str] = None
@@ -100,6 +156,7 @@ class ProfileOutputData(BaseModel):
     updated_at: Optional[datetime]
     iteration_limit: Optional[int]
     api_keys: Optional[List[ApiKeyOutputData]]
+    files: Optional[List[FileOutputData]]
 
 
 class ProfileOutput(BaseModel):
@@ -120,6 +177,7 @@ class ProfileOutput(BaseModel):
                 updated_at=profile.updated_at,
                 iteration_limit=profile.iteration_limit,
                 api_keys=[ApiKeyOutput.from_output(api_key).data for api_key in profile.api_keys] if profile.api_keys else None,
+                files=[FileOutput.from_output(file).data for file in profile.files] if profile.files else None,
             )
         )
 

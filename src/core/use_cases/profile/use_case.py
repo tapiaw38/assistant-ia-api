@@ -1,9 +1,17 @@
 from src.schemas.schemas import (
-    ProfileInput, ProfileOutput, ApiKeyInput, ApiKeyListOutput,ApiKeyDeleteOutput, ApiKeyOutput
+    ProfileInput, 
+    ProfileOutput, 
+    ApiKeyInput, 
+    ApiKeyListOutput,
+    ApiKeyDeleteOutput,
+    FileListOutput,
+    FileInput,
+    FileDeleteOutput,
 )
 from src.core.domain.model import (
     Profile,
     ApiKey,
+    File,
 )
 from datetime import datetime, timezone
 from pymongo.errors import PyMongoError
@@ -11,6 +19,8 @@ from src.core.platform.appcontext.appcontext import Factory
 from uuid import uuid4
 import jwt
 from datetime import datetime, timezone, timedelta
+from typing import List, Tuple, Optional
+from asyncio import to_thread, gather
 
 class CreateUseCase:
     def __init__(self, context_factory: Factory):
@@ -254,3 +264,89 @@ class UpdateIterationLimitUseCase:
 
         except Exception as e:
             raise Exception(f"Error executing UpdateIterationLimitUseCase: {e}")
+
+
+class AddFilesUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory
+
+    async def execute(self, user_id: str, input_files: List[FileInput]):
+        app = self.context_factory()
+
+        results: List[File] = []
+        errors: List[Exception] = []
+
+        async def process_file(file: FileInput, user_file: str) -> Tuple[Optional[File], Optional[Exception]]:
+            try:
+                file_id = str(uuid4())
+
+                file_name = await to_thread(
+                    app.store_service.put_object, file.file, user_file, file.filename, file.filesize, file_id
+                )
+                file_url = await to_thread(app.store_service.generate_url, file_name)
+
+                return File(
+                    _id=file_id,
+                    name=file_name,
+                    url=file_url,
+                    created_at=datetime.now(timezone.utc),
+                ), None
+            except Exception as e:
+                return None, e
+
+        tasks = [process_file(f, user_id) for f in input_files]
+        results_and_errors = await gather(*tasks)
+
+        for result, error in results_and_errors:
+            if error:
+                errors.append(error)
+            elif result:
+                results.append(result)
+
+        if errors:
+            raise Exception(f"Error processing files: {errors}")
+
+        try:
+            profile = app.repositories.profile.find_by_user_id(user_id)
+            if not profile:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+            if not hasattr(profile, "files") or profile.files is None:
+                profile.files = []
+
+            profile.files.extend(results)
+
+            app.repositories.profile.update_files(user_id, profile.files)
+
+            updated_profile = app.repositories.profile.find_by_user_id(user_id)
+            if not updated_profile:
+                raise Exception(f"No profile found with user_id: {user_id} after update")
+
+            return FileListOutput.from_output(updated_profile.files)
+
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with database: {e}")
+        except Exception as e:
+            raise Exception(f"Error executing AddFilesUseCase: {e}")
+
+
+class DeleteFileByIdUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory()
+
+    async def execute(self, user_id: str, file_id: str):
+        try:
+            file = self.context_factory.repositories.profile.get_file_by_id(user_id, file_id)
+            if not file:
+                raise Exception(f"No file found with id: {file_id}")
+
+            self.context_factory.repositories.profile.delete_file_by_id(user_id, file_id)
+            self.context_factory.store_service.delete_object(file.name)
+
+            return FileDeleteOutput.from_output(file_id)
+
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with database: {e}")
+
+        except Exception as e:
+            raise Exception(f"Error executing DeleteApiKeyUseCase: {e}")

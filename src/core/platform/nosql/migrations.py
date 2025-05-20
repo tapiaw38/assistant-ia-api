@@ -23,5 +23,12 @@ def execute_profile_migrations() -> List[Migration]:
                 {"$set": {"iteration_limit": 100}}
             )
         ),
+        Migration(
+            version=3,
+            up=lambda db: db["profiles"].update_many(
+                {},
+                {"$set": {"files": []}}
+            )
+        ),
         # Add more migrations here
     ]

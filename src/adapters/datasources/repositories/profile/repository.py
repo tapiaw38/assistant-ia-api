@@ -3,6 +3,7 @@ from typing import List, Optional
 from src.core.domain.model import (
     Profile,
     ApiKey,
+    File,
 )
 from src.adapters.datasources.datasources import Datasources
 from pymongo.errors import (
@@ -46,6 +47,18 @@ class RepositoryInterface(ABC):
 
     @abstractmethod
     def update_iteration_limit(self, user_id: str, iteration_limit: int) -> str:
+        pass
+
+    @abstractmethod
+    def update_files(self, user_id: str, files: List[File]) -> None:
+        pass
+
+    @abstractmethod
+    def delete_file_by_id(self, user_id: str, file_id: str) -> None:
+        pass
+
+    @abstractmethod
+    def get_file_by_id(self, user_id: str, file_id: str) -> Optional[File]:
         pass
 
 
@@ -127,7 +140,7 @@ class Repository(RepositoryInterface):
                 raise Exception(f"No profile found with user_id: {user_id}")
 
         except PyMongoError as e:
-            raise Exception(f"Error updating profile: {e}")
+            raise Exception(f"Error updating profile api_keys: {e}")
 
     def deactivate_api_key(self, user_id: str, api_key_id: str) -> Optional[str]:
         try:
@@ -186,3 +199,55 @@ class Repository(RepositoryInterface):
 
         except PyMongoError as e:
             raise Exception(f"Error updating profile: {e}")
+
+    def update_files(self, user_id: str, files: List[File]) -> None:
+        try:
+            files_dict = [file.dict(by_alias=True) for file in files]
+            result = self.client.update_one(
+                {"user_id": user_id},
+                {"$set": {"files": files_dict}}
+            )
+
+            if result.matched_count == 0:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+        except PyMongoError as e:
+            raise Exception(f"Error updating profile files: {e}")
+
+    def delete_file_by_id(self, user_id: str, file_id: str) -> None:
+        try:
+            result = self.client.update_one(
+                {"user_id": user_id},
+                {"$pull": {"files": {"_id": file_id}}}
+            )
+
+            if result.matched_count == 0:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+        except PyMongoError as e:
+            raise Exception(f"Error deleting file by ID: {e}")
+        except Exception as e:
+            raise Exception(f"Unexpected error: {e}")
+
+    def get_file_by_id(self, user_id: str, file_id: str) -> Optional[File]:
+        try:
+            document = self.client.find_one(
+                {
+                    "user_id": user_id,
+                    "files._id": file_id
+                },
+                {
+                    "files": {
+                        "$elemMatch": {"_id": file_id}
+                    }
+                }
+            )
+            if not document or "files" not in document or not document["files"]:
+                raise Exception(f"No file found with id: {file_id}")
+
+            return File(**document["files"][0])
+
+        except PyMongoError as e:
+            raise Exception(f"Error finding file by ID: {e}")
+        except Exception as e:
+            raise Exception(f"Unexpected error: {e}")
