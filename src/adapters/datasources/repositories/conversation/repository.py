@@ -3,6 +3,7 @@ from typing import List, Optional
 from src.core.domain.model import (
     Conversation,
     Message,
+    Profile,
 )
 from src.adapters.datasources.datasources import Datasources
 from pymongo.errors import PyMongoError
@@ -19,6 +20,9 @@ class RepositoryInterface(ABC):
 
     @abstractmethod
     def find_user_id(self, user_id: str) -> List[Conversation]:
+        pass
+
+    def update_profile_by_user_id(self, user_id: str, profile: Profile) -> str:
         pass
 
     @abstractmethod
@@ -55,6 +59,24 @@ class Repository(RepositoryInterface):
             ]
         except PyMongoError as e:
             raise Exception(f"Error finding conversations by user_id: {e}")
+
+    def update_profile_by_user_id(self, user_id: str, profile: Profile) -> str:
+        try:
+            profile_data = profile.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+
+            result = self.client.update_many(
+                {"profile.user_id": user_id},
+                {"$set": {"profile": profile_data}}
+            )
+
+            if result.matched_count == 0:
+                raise Exception(f"No conversation found with user_id: {user_id}")
+
+            return user_id
+
+        except PyMongoError as e:
+            raise Exception(f"Error updating conversation: {e}")
+
 
     def update_messages_by_id(self, id: str, messages: List[Message]) -> None:
         try:

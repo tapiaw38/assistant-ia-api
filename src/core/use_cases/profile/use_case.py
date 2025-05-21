@@ -12,6 +12,7 @@ from src.core.domain.model import (
     Profile,
     ApiKey,
     File,
+    Conversation,
 )
 from datetime import datetime, timezone
 from pymongo.errors import PyMongoError
@@ -116,6 +117,11 @@ class UpdateUseCase:
             if not profile_updated:
                 raise Exception(f"No profile found with user_id: {user_id} after update")
 
+            self.context_factory.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=profile_updated,
+            )
+
             return ProfileOutput.from_output(profile_updated)
 
         except PyMongoError as e:
@@ -200,6 +206,11 @@ class AddApiKeyUseCase:
 
             self.context_factory.repositories.profile.update_api_keys(user_id, profile.api_keys)
 
+            self.context_factory.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=profile,
+            )
+
             return ApiKeyListOutput.from_output(profile.api_keys)
 
         except PyMongoError as e:
@@ -216,6 +227,13 @@ class DeleteApiKeyUseCase:
     async def execute(self, user_id: str, api_key_id: str):
         try:
             self.context_factory.repositories.profile.deactivate_api_key(user_id, api_key_id)
+
+            profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
+
+            self.context_factory.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=profile,
+            )
 
             return ApiKeyDeleteOutput.from_output(api_key_id)
 
@@ -256,6 +274,11 @@ class UpdateIterationLimitUseCase:
             profile_updated = self.context_factory.repositories.profile.find_by_user_id(profile_user_id)
             if not profile_updated:
                 raise Exception(f"No profile found with user_id: {user_id} after update")
+
+            self.context_factory.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=profile_updated,
+            )
 
             return ProfileOutput.from_output(profile_updated)
 
@@ -322,6 +345,11 @@ class AddFilesUseCase:
             if not updated_profile:
                 raise Exception(f"No profile found with user_id: {user_id} after update")
 
+            app.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=updated_profile,
+            )
+
             return FileListOutput.from_output(updated_profile.files)
 
         except PyMongoError as e:
@@ -342,6 +370,15 @@ class DeleteFileByIdUseCase:
 
             self.context_factory.repositories.profile.delete_file_by_id(user_id, file_id)
             self.context_factory.store_service.delete_object(file.name)
+
+            profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
+            if not profile:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+            self.context_factory.repositories.conversation.update_profile_by_user_id(
+                user_id,
+                profile=profile,
+            )
 
             return FileDeleteOutput.from_output(file_id)
 
