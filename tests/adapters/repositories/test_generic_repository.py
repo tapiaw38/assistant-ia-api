@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from datetime import datetime
 from uuid import uuid4
-from src.adapters.repositories.repositories import Repository
+from src.adapters.datasources.repositories.conversation.repository import Repository
 from src.core.domain.model import Conversation
 
 
