@@ -118,8 +118,9 @@ def test_create_use_case_success(
     # The `messages` field will be what the Conversation model defaults to when not provided.
     # Pydantic models default Optional[List[X]] to None if no default_factory.
     # If Conversation has `messages: List[Message] = Field(default_factory=list)`, it would be [].
-    # Let's assume it defaults to an empty list or None, and the output schema handles it.
-    assert created_conv_arg.messages == [] or created_conv_arg.messages is None
+    # Explicitly verify the expected default value for the `messages` field.
+    assert created_conv_arg.messages is None  # Verify if the default is None
+    assert created_conv_arg.messages == []  # Verify if the default is an empty list
 
 
     mock_conversation_repository.find_by_id.assert_called_once_with(created_conversation_id)
