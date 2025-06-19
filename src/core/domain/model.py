@@ -29,6 +29,17 @@ class File(BaseModel):
     class Config:
         allow_population_by_field_name = True
 
+class Integration(BaseModel):
+    id: Optional[str] = Field(alias="_id", default=None)
+    name: str
+    type: str
+    config: dict
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        allow_population_by_field_name = True
+
 
 class Profile(BaseModel):
     id: Optional[str] = Field(alias="_id", default=None)
@@ -43,6 +54,7 @@ class Profile(BaseModel):
     api_keys: Optional[List[ApiKey]] = Field(default=None)
     iteration_limit: Optional[int] = Field(default=None)
     files: Optional[List[File]] = Field(default=None)
+    integrations: Optional[List[Integration]] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True

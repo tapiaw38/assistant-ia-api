@@ -104,6 +104,7 @@ class FileOutput(BaseModel):
             )
         )
 
+
 class FileListOutput(BaseModel):
     data: List[FileOutputData]
 
@@ -133,6 +134,51 @@ class FileDeleteOutput(BaseModel):
         )
 
 
+class IntegrationInput(BaseModel):
+    name: str
+    type: str
+    config: dict
+
+
+class IntegrationOutputData(BaseModel):
+    id: str
+    name: str
+    type: str
+    config: dict
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+
+class IntegrationOutput(BaseModel):
+    data: IntegrationOutputData
+
+    @staticmethod
+    def from_output(integration: IntegrationOutputData):
+        return IntegrationOutput(
+            data=IntegrationOutputData(
+                id=integration.id,
+                name=integration.name,
+                type=integration.type,
+                config=integration.config,
+                created_at=integration.created_at,
+                updated_at=integration.updated_at if integration.updated_at else None,
+            )
+        )
+
+
+class IntegrationListOutput(BaseModel):
+    data: List[IntegrationOutputData]
+
+    @staticmethod
+    def from_output(integrations: list[IntegrationOutputData]):
+        return IntegrationListOutput(
+            data=[
+                IntegrationOutput.from_output(integration).data
+                for integration in integrations
+            ]
+        )
+
+
 class ProfileInput(BaseModel):
     assistant_name: Optional[str] = None
     business_name: Optional[str] = None
@@ -157,6 +203,7 @@ class ProfileOutputData(BaseModel):
     iteration_limit: Optional[int]
     api_keys: Optional[List[ApiKeyOutputData]]
     files: Optional[List[FileOutputData]]
+    integrations: Optional[List[IntegrationOutputData]]
 
 
 class ProfileOutput(BaseModel):
@@ -178,6 +225,7 @@ class ProfileOutput(BaseModel):
                 iteration_limit=profile.iteration_limit,
                 api_keys=[ApiKeyOutput.from_output(api_key).data for api_key in profile.api_keys] if profile.api_keys else None,
                 files=[FileOutput.from_output(file).data for file in profile.files] if profile.files else None,
+                integrations=[IntegrationOutput.from_output(integration).data for integration in profile.integrations] if profile.integrations else None,
             )
         )
 

@@ -93,3 +93,10 @@ class ProfileService:
             return file_id
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    async def add_integration(self, user_id: str, integration: dict):
+        try:
+            integration = await self.usecase.add_integration_usecase.execute(user_id, integration)
+            return integration
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

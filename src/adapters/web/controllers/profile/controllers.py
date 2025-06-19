@@ -3,7 +3,8 @@ from src.schemas.schemas import (
     ProfileInput,
     ProfileStatusInput,
     ApiKeyInput,
-    FileInput
+    FileInput,
+    IntegrationInput,
 )
 from typing import List
 from src.adapters.services.services import Services
@@ -101,3 +102,13 @@ async def delete_file(
     user_id = request.state.user.get("user_id")
     file_id = await service.profile.delete_file_by_id(user_id, file_id)
     return file_id
+
+@router.post("/integrations", status_code=status.HTTP_201_CREATED)
+async def add_integration(
+    integration: IntegrationInput,
+    request: Request,
+    service: Services = Depends(get_instance)
+):
+    user_id = request.state.user.get("user_id")
+    integration = await service.profile.add_integration(user_id, integration)
+    return integration

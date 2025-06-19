@@ -31,7 +31,6 @@ class OpenAIIntegration:
         ) -> str:
 
         extracted_text = ""
-        print("profile.files", profile.files)
         if profile.files:
             for file in profile.files:
                 if file.url.endswith(('.xlsx', '.xls')):
