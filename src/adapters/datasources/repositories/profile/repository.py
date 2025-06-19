@@ -4,6 +4,7 @@ from src.core.domain.model import (
     Profile,
     ApiKey,
     File,
+    Integration,
 )
 from src.adapters.datasources.datasources import Datasources
 from pymongo.errors import (
@@ -59,6 +60,10 @@ class RepositoryInterface(ABC):
 
     @abstractmethod
     def get_file_by_id(self, user_id: str, file_id: str) -> Optional[File]:
+        pass
+
+    @abstractmethod
+    def update_integrations(self, user_id: str, integrations: List[Integration]) -> None:
         pass
 
 
@@ -249,5 +254,21 @@ class Repository(RepositoryInterface):
 
         except PyMongoError as e:
             raise Exception(f"Error finding file by ID: {e}")
+        except Exception as e:
+            raise Exception(f"Unexpected error: {e}")
+
+    def update_integrations(self, user_id: str, integrations: List[Integration]) -> None:
+        try:
+            integrations_dict = [integration.dict(by_alias=True) for integration in integrations]
+            result = self.client.update_one(
+                {"user_id": user_id},
+                {"$set": {"integrations": integrations_dict}}
+            )
+
+            if result.matched_count == 0:
+                raise Exception(f"No profile found with user_id: {user_id}")
+
+        except PyMongoError as e:
+            raise Exception(f"Error updating profile integrations: {e}")
         except Exception as e:
             raise Exception(f"Unexpected error: {e}")
