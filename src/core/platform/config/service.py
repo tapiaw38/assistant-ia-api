@@ -72,11 +72,7 @@ def get_env(key: str, fallback: str) -> str:
 def read_config() -> ConfigurationService:
     load_dotenv()
 
-    db_user = get_env("DB_USER", "admin")
-    db_password = get_env("DB_PASSWORD", "admin")
-    db_host = get_env("DB_HOST", "localhost")
-    db_port = get_env("DB_PORT", "27017")
-    db_name = get_env("DB_NAME", "assistant-ia-db")
+    db_uri = get_env("DATABASE_URI", "mongodb://localhost:27017")
 
     database_uri = f"mongodb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
