@@ -72,10 +72,7 @@ def get_env(key: str, fallback: str) -> str:
 def read_config() -> ConfigurationService:
     load_dotenv()
 
-    db_uri = get_env("DATABASE_URI", "mongodb://localhost:27017")
-
-    database_uri = f"mongodb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-
+    database_uri = get_env("DATABASE_URI", "mongodb://localhost:27017")
     server_config = ServerConfig(
         mode=ModeServer(get_env("APP_MODE", "release")),
         port=get_env("APP_PORT", "8000"),
