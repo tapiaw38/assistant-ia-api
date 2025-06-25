@@ -64,20 +64,31 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
 
         authorization: Optional[str] = request.headers.get("Authorization")
 
-        if authorization and authorization.lower().startswith("bearer "):
-            token = authorization.split("bearer ")[1].strip()
-            user_id = await decode_token(token)
-            if not user_id:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token/api-key")
-            request.state.user = user_id
-            return await call_next(request)
+        if authorization:
+            parts = authorization.split()
+            if len(parts) == 2 and parts[0].lower() == "bearer":
+                token = parts[1]
+                user_id = await decode_token(token)
+                if not user_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED, 
+                        detail="Missing or invalid token/Authorization"
+                    )
+                request.state.user = user_id
+                return await call_next(request)
 
         api_key = request.headers.get("x-api-key")
         if api_key:
             user_id = await validate_api_key(api_key, self.get_instance)
             if not user_id:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token/api-key")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, 
+                    detail="Missing or invalid token/api-key"
+                )
             request.state.user = user_id
             return await call_next(request)
 
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token/api-key")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Missing or invalid token"
+        )
