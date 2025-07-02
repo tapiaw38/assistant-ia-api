@@ -42,8 +42,6 @@ class OpenAIIntegration:
 
         full_context = f"{context or ''}\n{extracted_text.strip()}"
 
-        print("full_context", full_context)
-
         question_message = CONTEXT_INFORMATION.format(
             assistant_name=profile.assistant_name,
             business_name=profile.business_name,
