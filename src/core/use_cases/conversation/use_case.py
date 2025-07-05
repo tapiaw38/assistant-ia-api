@@ -18,6 +18,7 @@ from src.adapters.web.utils.image_formatter import format_images_for_chat_respon
 from uuid import uuid4
 from typing import Optional
 
+
 class CreateUseCase:
     def __init__(self, context_factory: Factory):
         self.context_factory = context_factory()
@@ -27,8 +28,8 @@ class CreateUseCase:
             profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
             generated_id = str(uuid4())
             new_conversation = Conversation(
-                _id= generated_id,
-                profile= Profile(
+                _id=generated_id,
+                profile=Profile(
                     _id=profile.id,
                     user_id=profile.user_id,
                     assistant_name=profile.assistant_name,
@@ -43,9 +44,15 @@ class CreateUseCase:
                 created_at=datetime.now(timezone.utc),
             )
 
-            conversation_id = self.context_factory.repositories.conversation.create(new_conversation)
+            conversation_id = self.context_factory.repositories.conversation.create(
+                new_conversation
+            )
 
-            created_conversation =  self.context_factory.repositories.conversation.find_by_id(conversation_id)
+            created_conversation = (
+                self.context_factory.repositories.conversation.find_by_id(
+                    conversation_id
+                )
+            )
 
             if not created_conversation:
                 raise Exception("Error conversation not found after creation")
@@ -58,13 +65,16 @@ class CreateUseCase:
         except Exception as e:
             raise Exception(f"Error executing CreateUseCase: {e}")
 
+
 class FindByUserIdUseCase:
     def __init__(self, context_factory: Factory):
         self.context_factory = context_factory()
 
     def execute(self, user_id: str):
         try:
-            conversations = self.context_factory.repositories.conversation.find_user_id(user_id)
+            conversations = self.context_factory.repositories.conversation.find_user_id(
+                user_id
+            )
             return ConversationListOutput.from_output(conversations)
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -72,19 +82,26 @@ class FindByUserIdUseCase:
         except Exception as e:
             raise Exception(f"Error executing FindByUserIdUseCase: {e}")
 
+
 class AddMessageUseCase:
     def __init__(self, context_factory: Factory):
         self.context_factory = context_factory()
 
     def convert_messages_to_string(self, messages: list[Message]) -> str:
         message_objects = [
-            f"{message.sender}: {message.content}"
-            for message in messages
+            f"{message.sender}: {message.content}" for message in messages
         ]
 
         return " - ".join(message_objects)
 
-    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str, has_image_processor: Optional[str] = None) -> list[Message]:
+    async def execute(
+        self,
+        conversation_id: str,
+        message: MessageInput,
+        sender: SenderEnum,
+        user_id: str,
+        has_image_processor: Optional[str] = None,
+    ) -> list[Message]:
         new_message = Message(
             content=message.content,
             sender=sender,
@@ -92,18 +109,27 @@ class AddMessageUseCase:
         )
 
         try:
-            search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
+            search_conversation = (
+                self.context_factory.repositories.conversation.find_by_id(
+                    conversation_id
+                )
+            )
             if not search_conversation:
                 raise Exception("Conversation not found")
 
             if user_id != search_conversation.profile.user_id:
                 raise Exception("User not authorized to add message")
 
-            if not hasattr(search_conversation, "messages") or search_conversation.messages is None:
+            if (
+                not hasattr(search_conversation, "messages")
+                or search_conversation.messages is None
+            ):
                 search_conversation.messages = []
 
             if any(msg.id == new_message.id for msg in search_conversation.messages):
-                raise Exception("Message with the same ID already exists in the conversation")
+                raise Exception(
+                    "Message with the same ID already exists in the conversation"
+                )
 
             search_conversation.messages.append(new_message)
 
@@ -116,18 +142,18 @@ class AddMessageUseCase:
 
             file_images = []
             formatted_images_list = []
-            
+
             if has_image_processor == "activate":
                 file_images = await self.context_factory.integrations.openai.search_images_in_files(
                     new_message.content,
                     search_conversation.profile,
                 )
 
+                print(f"File images found: {len(file_images)}")
+
                 if file_images:
                     formatted_images = format_images_for_chat_response(
-                        file_images,
-                        new_message.content,
-                        max_images_to_show=3
+                        file_images, new_message.content, max_images_to_show=3
                     )
                     formatted_images_list.append(formatted_images)
 
@@ -140,7 +166,7 @@ class AddMessageUseCase:
             search_conversation.messages.append(response_message)
 
             self.context_factory.repositories.conversation.update_messages_by_id(
-                conversation_id, 
+                conversation_id,
                 search_conversation.messages,
             )
 
@@ -168,7 +194,11 @@ class DeleteAllMessagesUseCase:
 
     async def execute(self, conversation_id: str, user_id: str):
         try:
-            search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
+            search_conversation = (
+                self.context_factory.repositories.conversation.find_by_id(
+                    conversation_id
+                )
+            )
             if not search_conversation:
                 raise Exception("Conversation not found")
 

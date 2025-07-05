@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional
-from src.adapters.web.integrations.fileprocessor.processor import ImageSearchResult
+from src.core.platform.fileprocessor.processor import ImageSearchResult
 
 def format_images_to_html(
     images: List[ImageSearchResult], 
