@@ -1,8 +1,9 @@
 from src.core.platform.config.service import ConfigurationService
 from openai import AsyncOpenAI
-from typing import Optional
+from typing import Optional, List
 from src.adapters.web.integrations.openapi.context import CONTEXT_INFORMATION
 from src.core.domain.model import Profile
+from src.adapters.web.integrations.fileprocessor.processor import FileImageProcessor, ImageSearchResult
 import pandas as pd
 import requests
 from io import BytesIO
@@ -21,6 +22,8 @@ class OpenAIIntegration:
             api_key=self.api_key,
             base_url=self.base_url
         )
+
+        self.image_processor = FileImageProcessor(config_service)
 
     async def ask(
             self, 
@@ -59,6 +62,36 @@ class OpenAIIntegration:
             ]
         )
         return response.choices[0].message.content
+
+    async def search_images_in_files(
+        self, 
+        search_term: str, 
+        profile: Profile,
+        max_results: int = 5
+    ) -> List[ImageSearchResult]:
+        if not profile.files:
+            return []
+        
+        all_results = []
+        
+        for file in profile.files:
+            if file.url.endswith('.pdf'):
+                try:
+                    results = await self.image_processor.search_images_in_pdf(
+                        file.url, 
+                        search_term, 
+                        max_results
+                    )
+                    all_results.extend(results)
+                except Exception as e:
+                    print(f"Error searching images in PDF {file.url}: {e}")
+                    continue
+
+        all_results.sort(key=lambda x: x.confidence, reverse=True)
+        return all_results[:max_results]
+
+    async def describe_image_from_base64(self, image_base64: str) -> str:
+        return await self.image_processor.describe_image(image_base64)
 
     def _extract_text_from_excel(self, file_path: str) -> str:
         try:

@@ -22,3 +22,10 @@ pandas
 openpyxl
 PyPDF2
 requests
+pdf2image
+Pillow
+pymupdf
+opencv-python
+scikit-image
+numpy
+matplotlib

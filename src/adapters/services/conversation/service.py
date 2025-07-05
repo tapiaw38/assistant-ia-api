@@ -7,7 +7,7 @@ from src.core.domain.model import (
     SenderEnum,
 )
 from src.core.use_cases.use_cases import Conversation
-
+from typing import Optional
 
 class ConversationService:
     def __init__(self, usecase: Conversation):
@@ -32,9 +32,9 @@ class ConversationService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str):
+    async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str, has_image_processor: Optional[str] = None):
         try:
-            messages = await self.usecase.add_message_usecase.execute(conversation_id, message, sender, user_id)
+            messages = await self.usecase.add_message_usecase.execute(conversation_id, message, sender, user_id, has_image_processor)
             return messages
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

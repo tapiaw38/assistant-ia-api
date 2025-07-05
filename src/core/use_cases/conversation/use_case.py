@@ -14,7 +14,9 @@ from src.core.domain.model import (
 from datetime import datetime, timezone
 from pymongo.errors import PyMongoError
 from src.core.platform.appcontext.appcontext import Factory
+from src.adapters.web.utils.image_formatter import format_images_for_chat_response
 from uuid import uuid4
+from typing import Optional
 
 class CreateUseCase:
     def __init__(self, context_factory: Factory):
@@ -82,7 +84,7 @@ class AddMessageUseCase:
 
         return " - ".join(message_objects)
 
-    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str) -> list[Message]:
+    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str, has_image_processor: Optional[str] = None) -> list[Message]:
         new_message = Message(
             content=message.content,
             sender=sender,
@@ -112,6 +114,23 @@ class AddMessageUseCase:
                 search_conversation.profile,
             )
 
+            file_images = []
+            formatted_images_list = []
+            
+            if has_image_processor == "activate":
+                file_images = await self.context_factory.integrations.openai.search_images_in_files(
+                    new_message.content,
+                    search_conversation.profile,
+                )
+
+                if file_images:
+                    formatted_images = format_images_for_chat_response(
+                        file_images,
+                        new_message.content,
+                        max_images_to_show=3
+                    )
+                    formatted_images_list.append(formatted_images)
+
             response_message = Message(
                 content=response,
                 sender="assistant",
@@ -124,6 +143,15 @@ class AddMessageUseCase:
                 conversation_id, 
                 search_conversation.messages,
             )
+
+            response_with_images = response
+            if has_image_processor == "activate" and formatted_images_list:
+                formatted_images = "\n".join(formatted_images_list)
+                if formatted_images:
+                    response_with_images += f"\n\n{formatted_images}"
+
+                    response_message.content = response_with_images
+                    search_conversation.messages[-1] = response_message
 
             return MessageListOutput.from_output(search_conversation.messages)
 

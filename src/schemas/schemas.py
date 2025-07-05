@@ -80,10 +80,53 @@ class ApiKeyDeleteOutput(BaseModel):
 
 class FileInput:
     def __init__(self, file: UploadFile):
-        self.file = file.file
+        if not file:
+            raise ValueError("File object cannot be None")
+        
+        print(f"FileInput init - file type: {type(file)}")
+        print(f"FileInput init - file attributes: {dir(file)}")
+        
+        # Verificar atributos básicos
+        if not hasattr(file, 'filename'):
+            raise ValueError("UploadFile object missing 'filename' attribute")
+        
+        if not hasattr(file, 'file'):
+            raise ValueError("UploadFile object missing 'file' attribute")
+        
         self.filename = file.filename
-        self.filesize = file.file._file.tell()
-        self.file_header = file.headers
+        self.file = file.file
+        self.file_header = getattr(file, 'headers', {})
+        
+        print(f"FileInput init - filename: {self.filename}")
+        print(f"FileInput init - file object: {self.file}")
+        print(f"FileInput init - file object type: {type(self.file)}")
+        
+        # Obtener tamaño de forma segura
+        try:
+            if hasattr(file, 'size') and file.size is not None:
+                self.filesize = file.size
+                print(f"FileInput init - size from file.size: {self.filesize}")
+            elif self.file and hasattr(self.file, '_file') and hasattr(self.file._file, 'tell'):
+                current_pos = self.file._file.tell()
+                self.file._file.seek(0, 2)  # Ir al final
+                self.filesize = self.file._file.tell()
+                self.file._file.seek(current_pos)  # Volver a la posición original
+                print(f"FileInput init - size from file._file.tell(): {self.filesize}")
+            else:
+                self.filesize = 0
+                print("FileInput init - size defaulted to 0")
+        except (AttributeError, OSError, TypeError) as e:
+            print(f"FileInput init - error getting size: {e}")
+            self.filesize = 0
+        
+        # Validar que el archivo tenga contenido
+        if not self.file:
+            raise ValueError(f"File content is None for file: {self.filename}")
+        
+        print(f"FileInput init completed - filename: {self.filename}, size: {self.filesize}")
+
+    def __repr__(self):
+        return f"FileInput(filename='{self.filename}', filesize={self.filesize}, file_type={type(self.file)})"
 
 
 class FileOutputData(BaseModel):
