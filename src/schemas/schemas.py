@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from src.core.domain.model import (
     Profile,
     Conversation,  
@@ -332,3 +332,35 @@ class MessageListOutput(BaseModel):
                 for message in messages
             ]
         )
+
+
+# WhatsApp Integration Schemas
+class WhatsAppConfigInput(BaseModel):
+    access_token: str
+    phone_number_id: str
+    webhook_verify_token: Optional[str] = None
+    app_secret: Optional[str] = None
+
+
+class WhatsAppIntegrationInput(BaseModel):
+    name: str = "WhatsApp"
+    type: str = "whatsapp"
+    config: WhatsAppConfigInput
+
+
+class WhatsAppMessageInput(BaseModel):
+    recipient: str
+    message: str
+    message_type: str = "text"
+
+
+class WhatsAppTemplateMessageInput(BaseModel):
+    recipient: str
+    template_name: str
+    language_code: str = "es"
+    parameters: Optional[List[str]] = None
+
+
+class WhatsAppWebhookPayload(BaseModel):
+    entry: List[Dict[str, Any]]
+    object: str = "whatsapp_business_account"
