@@ -479,7 +479,7 @@ class FileImageProcessor(BaseFileProcessor):
                             img_base64, text
                         )
 
-                        if relevance_score > 0.3:  # Relevance threshold
+                        if relevance_score > 0.5:  # Increased relevance threshold for better precision
                             description = (
                                 await self._generate_image_description_with_context(
                                     img_base64, text
@@ -875,7 +875,10 @@ class FileImageProcessor(BaseFileProcessor):
                         img["confidence"] = min(img["confidence"] + 0.2, 1.0)
 
                     img["search_relevance"] = semantic_score
-                    filtered.append(img)
+                    
+                    # Only include images with >75% confidence for better precision
+                    if img["confidence"] > 0.75:
+                        filtered.append(img)
 
             # Sort by search relevance and confidence
             filtered.sort(

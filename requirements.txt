@@ -32,3 +32,5 @@ matplotlib
 seaborn
 pytesseract
 scikit-learn
+aiohttp
+aiofiles

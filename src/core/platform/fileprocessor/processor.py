@@ -7,7 +7,10 @@ from src.core.platform.config.service import ConfigurationService
 from openai import AsyncOpenAI
 import asyncio
 from dataclasses import dataclass
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 import numpy as np
 from io import BytesIO
 import pandas as pd
