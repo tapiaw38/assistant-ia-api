@@ -324,6 +324,80 @@ class BaseFileProcessor:
             print(f"Error calculating relevance: {e}")
             return 0.0
 
+    def _calculate_relevance_score_optimized(
+        self, analysis: Dict[str, Any], search_term: str, img_data: Dict[str, Any] = None
+    ) -> float:
+        """
+        Optimized relevance calculation that avoids API calls and uses only local analysis
+        """
+        try:
+            search_term_lower = search_term.lower()
+            base_score = 0.0
+            
+            # 1. Check for text detection (images with text are often more relevant)
+            if analysis.get("text_detected", False):
+                base_score += 0.2
+            
+            # 2. Quality score bonus (higher quality images are often more relevant)
+            quality_score = analysis.get("quality_score", 0)
+            if quality_score > 0.7:
+                base_score += 0.15
+            elif quality_score > 0.5:
+                base_score += 0.1
+            
+            # 3. Object detection bonus
+            objects_detected = analysis.get("objects_detected", 0)
+            if objects_detected > 0:
+                base_score += min(objects_detected * 0.1, 0.2)
+            
+            # 4. Image properties analysis
+            dimensions = analysis.get("dimensions", (0, 0))
+            if dimensions[0] > 300 and dimensions[1] > 300:  # Reasonable size
+                base_score += 0.1
+            
+            # 5. Brightness and contrast (well-balanced images often more relevant)
+            brightness = analysis.get("brightness", 0)
+            contrast = analysis.get("contrast", 0)
+            if 0.3 < brightness < 0.8 and contrast > 30:
+                base_score += 0.1
+            
+            # 6. Search term matching bonuses
+            # Check if search term contains common image-related keywords
+            image_keywords = [
+                "chart", "graph", "image", "picture", "photo", "diagram", 
+                "illustration", "logo", "product", "item", "data", "analysis"
+            ]
+            
+            for keyword in image_keywords:
+                if keyword in search_term_lower:
+                    base_score += 0.15
+                    break
+            
+            # 7. File context bonus (if img_data contains context)
+            if img_data:
+                sheet_name = img_data.get("sheet_name", "").lower()
+                page_info = img_data.get("page_number", 1)
+                
+                # First page/sheet bonus
+                if page_info == 1:
+                    base_score += 0.1
+                
+                # Sheet name relevance
+                if search_term_lower in sheet_name:
+                    base_score += 0.2
+            
+            # 8. Default baseline for any valid image
+            base_score += 0.3
+            
+            # Cap the score at 1.0
+            final_score = min(base_score, 1.0)
+            
+            return final_score
+            
+        except Exception as e:
+            # Return a default moderate score on error
+            return 0.5
+
     def _describe_colors(self, colors: List[List[int]]) -> str:
         """Describe colors in a user-friendly way"""
         try:

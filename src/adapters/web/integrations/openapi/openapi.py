@@ -44,11 +44,11 @@ class OpenAIIntegration:
         if profile.files:
             for file in profile.files:
                 try:
-                    if file.url.endswith((".xlsx", ".xls")):
+                    if file.url.lower().endswith((".xlsx", ".xls")):
                         extracted_text += (
                             await self._extract_text_from_excel_async(file.url) + "\n"
                         )
-                    elif file.url.endswith(".pdf"):
+                    elif file.url.lower().endswith(".pdf"):
                         extracted_text += (
                             await self._extract_text_from_pdf_async(file.url) + "\n"
                         )
@@ -87,7 +87,7 @@ class OpenAIIntegration:
         all_results = []
 
         for file in profile.files:
-            if file.url.endswith(".pdf"):
+            if file.url.lower().endswith(".pdf"):
                 try:
                     results = await self.image_processor.search_images_in_pdf(
                         file.url, search_term, max_results
@@ -96,7 +96,7 @@ class OpenAIIntegration:
                 except Exception as e:
                     print(f"Error searching images in PDF {file.url}: {e}")
                     continue
-            elif file.url.endswith((".xlsx", ".xls")):
+            elif file.url.lower().endswith((".xlsx", ".xls")):
                 try:
                     results = await self.excel_processor.search_images_in_excel(
                         file.url, search_term, max_results
@@ -192,7 +192,7 @@ class OpenAIIntegration:
         all_results = []
 
         for file in profile.files:
-            if file.url.endswith(".pdf"):
+            if file.url.lower().endswith(".pdf"):
                 try:
                     # Use enhanced search with text analysis
                     results = await self.image_processor.search_images_in_pdf_with_text_analysis(
@@ -210,7 +210,7 @@ class OpenAIIntegration:
                     except Exception as fallback_e:
                         print(f"Error in fallback PDF search {file.url}: {fallback_e}")
                         continue
-            elif file.url.endswith((".xlsx", ".xls")):
+            elif file.url.lower().endswith((".xlsx", ".xls")):
                 try:
                     results = await self.excel_processor.search_images_in_excel(
                         file.url, search_term, max_results
@@ -348,9 +348,9 @@ class OpenAIIntegration:
         """
         Extracts text with character limit and generates summary if necessary
         """
-        if file_url.endswith((".xlsx", ".xls")):
+        if file_url.lower().endswith((".xlsx", ".xls")):
             text = await self._extract_text_from_excel_async(file_url)
-        elif file_url.endswith(".pdf"):
+        elif file_url.lower().endswith(".pdf"):
             text = await self._extract_text_from_pdf_async(file_url)
         else:
             return f"Unsupported format: {file_url}"
