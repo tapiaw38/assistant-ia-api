@@ -19,16 +19,11 @@ from src.adapters.web.utils.image_formatter import format_images_for_chat_respon
 from uuid import uuid4
 from typing import Optional
 
-
-# Set up logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Remove os import and environment variable usage
-# Set module-level constants
 IMAGE_CONFIDENCE_THRESHOLD = 0.3
 MAX_IMAGES_TO_SHOW = 3
-# Optimization: Use fast mode to reduce API calls
 ENABLE_FAST_IMAGE_PROCESSING = True
 
 
@@ -42,17 +37,7 @@ class CreateUseCase:
             generated_id = str(uuid4())
             new_conversation = Conversation(
                 _id=generated_id,
-                profile=Profile(
-                    _id=profile.id,
-                    user_id=profile.user_id,
-                    assistant_name=profile.assistant_name,
-                    business_name=profile.business_name,
-                    functions=profile.functions,
-                    business_context=profile.business_context,
-                    files=profile.files,
-                    created_at=profile.created_at,
-                    updated_at=profile.updated_at,
-                ),
+                profile=Profile(**profile.dict()),
                 title=conversation.title,
                 created_at=datetime.now(timezone.utc),
             )
@@ -61,11 +46,7 @@ class CreateUseCase:
                 new_conversation
             )
 
-            created_conversation = (
-                self.context_factory.repositories.conversation.find_by_id(
-                    conversation_id
-                )
-            )
+            created_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
 
             if not created_conversation:
                 raise Exception("Error: conversation not found after creation")
@@ -85,9 +66,7 @@ class FindByUserIdUseCase:
 
     def execute(self, user_id: str):
         try:
-            conversations = self.context_factory.repositories.conversation.find_user_id(
-                user_id
-            )
+            conversations = self.context_factory.repositories.conversation.find_user_id(user_id)
             return ConversationListOutput.from_output(conversations)
         except PyMongoError as e:
             raise Exception(f"Error interacting with database: {e}")
@@ -101,27 +80,68 @@ class AddMessageUseCase:
         self.context_factory = context_factory()
 
     def convert_messages_to_string(self, messages: list[Message]) -> str:
-        """
-        Converts a list of Message objects to a single string for context.
-        """
-        message_objects = [
-            f"{message.sender}: {message.content}" for message in messages
-        ]
-        return " - ".join(message_objects)
+        return " - ".join([f"{msg.sender}: {msg.content}" for msg in messages])
 
-    async def execute(
-        self,
-        conversation_id: str,
-        message: MessageInput,
-        sender: SenderEnum,
-        user_id: str,
-        has_image_processor: Optional[str] = None,
-    ) -> list[Message]:
-        """
-        Adds a message to a conversation and processes image extraction if enabled.
-        If image processing is activated, first asks OpenAI for the keyword to search in images,
-        then uses that keyword for image search instead of the original message content.
-        """
+    async def _process_mercadolibre_integration(self, integration, profile):
+        try:
+            ml_config = integration.config
+            access_token = ml_config.get("access_token")
+            ml_user_id = ml_config.get("user_id")
+
+            logger.info(f"MercadoLibre integration - Access token: {access_token[:20]}...")
+            logger.info(f"MercadoLibre integration - User ID: {ml_user_id}")
+
+            if not access_token or not ml_user_id:
+                logger.warning("MercadoLibre integration missing credentials")
+                return
+
+            self.context_factory.integrations.initialize_mercadolibre(access_token, ml_user_id)
+            ml_integration = self.context_factory.integrations.mercadolibre
+
+            if not ml_integration:
+                logger.error("Failed to initialize MercadoLibre integration")
+                return
+
+            async with ml_integration:
+                logger.info("Processing MercadoLibre integration...")
+                logger.info("Getting user items from MercadoLibre...")
+                items = await ml_integration.get_user_items(limit=10)
+                logger.info(f"Found {len(items)} user items")
+
+                if items:
+                    for item in items[:3]:
+                        logger.info(f"- {item.title} ({item.price} {item.currency_id}) - Status: {item.status}")
+
+                    auto_answer = True
+
+                    logger.info("Processing MercadoLibre unanswered questions...")
+                    results = await ml_integration.auto_answer_questions_with_ai(
+                        self.context_factory.integrations.openai,
+                        profile,
+                        auto_send=auto_answer
+                    )
+
+                    logger.info(f"MercadoLibre processing results: {results['total_questions']} questions, "
+                                f"{results['answered']} answered, {results['failed']} failed")
+
+                    if not auto_answer and results['responses']:
+                        for response in results['responses'][:3]:
+                            logger.info(f"Q: {response['question_text'][:100]}...")
+                            logger.info(f"A: {response['suggested_answer'][:200]}...")
+
+                    if auto_answer and results['answered'] > 0:
+                        for response in results['responses']:
+                            if response['answered']:
+                                logger.info(f"✅ Answered Q{response['question_id']}: {response['question_text'][:50]}...")
+
+                    logger.info(f"MercadoLibre integration successful - {len(items)} items, {results['total_questions']} questions processed")
+                else:
+                    logger.warning("Could not access user items - check token permissions or user has no active items")
+
+        except Exception as e:
+            logger.error(f"Error processing MercadoLibre integration: {e}")
+
+    async def execute(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str, has_image_processor: Optional[str] = None) -> list[Message]:
         new_message = Message(
             content=message.content,
             sender=sender,
@@ -129,30 +149,18 @@ class AddMessageUseCase:
         )
 
         try:
-            search_conversation = (
-                self.context_factory.repositories.conversation.find_by_id(
-                    conversation_id
-                )
-            )
+            search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
             if not search_conversation:
-                logger.error("Conversation not found")
                 raise Exception("Conversation not found")
 
             if user_id != search_conversation.profile.user_id:
-                logger.error("User not authorized to add message")
                 raise Exception("User not authorized to add message")
 
-            if (
-                not hasattr(search_conversation, "messages")
-                or search_conversation.messages is None
-            ):
+            if not hasattr(search_conversation, "messages") or search_conversation.messages is None:
                 search_conversation.messages = []
 
             if any(msg.id == new_message.id for msg in search_conversation.messages):
-                logger.error("Message with the same ID already exists in the conversation")
-                raise Exception(
-                    "Message with the same ID already exists in the conversation"
-                )
+                raise Exception("Message with the same ID already exists in the conversation")
 
             search_conversation.messages.append(new_message)
 
@@ -168,8 +176,6 @@ class AddMessageUseCase:
             image_search_keyword = new_message.content
 
             if has_image_processor == "activate":
-                # Ask OpenAI for the keyword to search in images
-                logger.info("Requesting image search keyword from OpenAI...")
                 keyword_prompt = (
                     "Given the following user message, what is the best single keyword or phrase to use to search for relevant images in the user's files? "
                     "Respond ONLY with the keyword or phrase, no explanation.\n\n"
@@ -181,25 +187,13 @@ class AddMessageUseCase:
                     self.convert_messages_to_string(search_conversation.messages),
                     search_conversation.profile,
                 )
-                logger.info(f"Image search keyword received: '{image_search_keyword}'")
 
-                # Use optimized image search with reduced API calls
-                if ENABLE_FAST_IMAGE_PROCESSING:
-                    logger.info("Using optimized fast image processing mode")
-                    # Limit to fewer results to reduce processing time
-                    max_results_for_search = min(MAX_IMAGES_TO_SHOW, 2)
-                else:
-                    max_results_for_search = MAX_IMAGES_TO_SHOW
-
+                max_results_for_search = min(MAX_IMAGES_TO_SHOW, 2) if ENABLE_FAST_IMAGE_PROCESSING else MAX_IMAGES_TO_SHOW
                 file_images = await self.context_factory.integrations.openai.search_images_in_files(
                     image_search_keyword,
                     search_conversation.profile,
                     max_results_for_search,
                 )
-
-                logger.info(f"File images found: {len(file_images)}")
-
-                # Filter by confidence threshold
                 file_images = [img for img in file_images if getattr(img, 'confidence', 1.0) >= IMAGE_CONFIDENCE_THRESHOLD]
 
                 if file_images:
@@ -215,19 +209,19 @@ class AddMessageUseCase:
             )
 
             search_conversation.messages.append(response_message)
-
             self.context_factory.repositories.conversation.update_messages_by_id(
-                conversation_id,
-                search_conversation.messages,
+                conversation_id, search_conversation.messages
             )
 
-            response_with_images = response
+            for integration in search_conversation.profile.integrations:
+                if integration.name == "meli":
+                    await self._process_mercadolibre_integration(integration, search_conversation.profile)
+
             if has_image_processor == "activate" and formatted_images_list:
                 formatted_images = "\n".join(formatted_images_list)
                 if formatted_images:
-                    response_with_images += f"\n\n{formatted_images}"
-                    response_message.content = response_with_images
-                    search_conversation.messages[-1] = response_message
+                    response_with_images = response + f"\n\n{formatted_images}"
+                    search_conversation.messages[-1].content = response_with_images
 
             return MessageListOutput.from_output(search_conversation.messages)
 
@@ -246,22 +240,14 @@ class DeleteAllMessagesUseCase:
 
     async def execute(self, conversation_id: str, user_id: str):
         try:
-            search_conversation = (
-                self.context_factory.repositories.conversation.find_by_id(
-                    conversation_id
-                )
-            )
+            search_conversation = self.context_factory.repositories.conversation.find_by_id(conversation_id)
             if not search_conversation:
                 raise Exception("Conversation not found")
 
             if user_id != search_conversation.profile.user_id:
                 raise Exception("User not authorized to delete messages")
 
-            self.context_factory.repositories.conversation.update_messages_by_id(
-                conversation_id,
-                [],
-            )
-
+            self.context_factory.repositories.conversation.update_messages_by_id(conversation_id, [])
             search_conversation.messages = []
 
             return MessageListOutput.from_output(search_conversation.messages)
