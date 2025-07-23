@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, status, Depends, Request, Query
+from fastapi import APIRouter, status, Depends, Request, Query, HTTPException
 from src.schemas.schemas import (
     ConversationInput,
     MessageInput,
@@ -38,6 +38,16 @@ async def find_conversations_by_user_id(
     conversations = await service.conversation.find_by_user_id(user_id)
     return conversations
 
+@router.get("/{conversation_id}", status_code=status.HTTP_200_OK)
+async def find_conversation_by_id(
+    conversation_id: str,
+    service: Services = Depends(get_instance)
+):
+    conversation = await service.conversation.find_by_id(conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    return conversation
+
 @router.post("/{conversation_id}/message", status_code=status.HTTP_200_OK)
 async def add_message(
     conversation_id: str,
@@ -48,7 +58,7 @@ async def add_message(
 ):
     sender = SenderEnum.user
     user_id = request.state.user.get("user_id")
-    
+
     messages = await service.conversation.add_message(
         conversation_id, 
         message, 

@@ -32,6 +32,15 @@ class ConversationService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+    async def find_by_id(self, conversation_id: str):
+        try:
+            conversation = self.usecase.find_by_id_usecase.execute(conversation_id)
+            if conversation is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+            return conversation
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
     async def add_message(self, conversation_id: str, message: MessageInput, sender: SenderEnum, user_id: str, has_image_processor: Optional[str] = None):
         try:
             messages = await self.usecase.add_message_usecase.execute(conversation_id, message, sender, user_id, has_image_processor)

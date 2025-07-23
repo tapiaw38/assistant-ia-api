@@ -95,6 +95,23 @@ class FindByUserIdUseCase:
         except Exception as e:
             raise Exception(f"Error executing FindByUserIdUseCase: {e}")
 
+class FindByIdUseCase:
+    def __init__(self, context_factory: Factory):
+        self.context_factory = context_factory()
+
+    def execute(self, conversation_id: str) -> Optional[Conversation]:
+        try:
+            conversation = self.context_factory.repositories.conversation.find_by_id(
+                conversation_id
+            )
+            if not conversation:
+                raise Exception("Conversation not found")
+            return ConversationOutput.from_output(conversation)
+        except PyMongoError as e:
+            raise Exception(f"Error interacting with database: {e}")
+
+        except Exception as e:
+            raise Exception(f"Error executing FindByIdUseCase: {e}")
 
 class AddMessageUseCase:
     def __init__(self, context_factory: Factory):
