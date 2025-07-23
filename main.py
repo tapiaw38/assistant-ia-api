@@ -75,5 +75,5 @@ integrations = create_integrations(config_service)
 context_factory = new_factory(datasources, integrations, store_service, config_service)
 usecases = create_usecases(context_factory)
 
-routes_manager = RoutesManager(app, usecases)
+routes_manager = RoutesManager(app, usecases, config_service)
 routes_manager.include_routes()
