@@ -74,6 +74,7 @@ class Conversation(BaseModel):
     id: Optional[str] = Field(alias="_id", default=None)
     title: str
     created_at: datetime
+    client_id: str
     profile: Profile
     messages: Optional[List[Message]] = Field(default=None)
 

@@ -40,6 +40,7 @@ class CreateUseCase:
         try:
             profile = self.context_factory.repositories.profile.find_by_user_id(user_id)
             generated_id = str(uuid4())
+            generated_client_id = str(uuid4())
             new_conversation = Conversation(
                 _id=generated_id,
                 profile=Profile(
@@ -55,6 +56,7 @@ class CreateUseCase:
                 ),
                 title=conversation.title,
                 created_at=datetime.now(timezone.utc),
+                client_id=generated_client_id,
             )
 
             conversation_id = self.context_factory.repositories.conversation.create(

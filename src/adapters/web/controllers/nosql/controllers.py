@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Body
 from src.core.platform.nosql.client import Client, MongoDBClient
-from typing import Optional, List, Any
+from typing import Optional, List
 from src.core.platform.config.service import (
     get_config_service
 )

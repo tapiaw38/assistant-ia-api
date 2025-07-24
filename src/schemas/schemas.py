@@ -266,6 +266,7 @@ class ConversationOutputData(BaseModel):
     id: Optional[str]
     title: str
     created_at: datetime
+    client_id: str
     profile: Profile
     messages:  Optional[List[Message]]
 
@@ -280,6 +281,7 @@ class ConversationOutput(BaseModel):
                 id=conversation.id,
                 title=conversation.title,
                 created_at=conversation.created_at,
+                client_id=conversation.client_id,
                 profile=conversation.profile,
                 messages=conversation.messages,
             )
